@@ -1,0 +1,383 @@
+functions = functions or {}
+local _M = functions
+
+function print_t(t, name, indent)
+    if t == nil then
+        return print(string.format("%s = %s", name or "value", "nil" ))
+    end
+
+    --- 数字 字符串 nil 直接打印
+    if t == nil or type(t) == "string" or type(t)=="number" then
+        return print(string.format("%s = %s", name or "value", t ))
+    end
+
+    --- table 或者 function？ 使用方式打印
+    local tableList = {}   
+    function table_r (t, name, indent, full)   
+        local id = not full and name or type(name)~="number" and tostring(name) or '['..name..']'   
+        local tag = indent .. id .. ' = '   
+        local out = {}  -- result   
+        if type(t) == "table" then   
+            if tableList[t] ~= nil then   
+                table.insert(out, tag .. '{} -- ' .. tableList[t] .. ' (self reference)')   
+            else  
+                tableList[t]= full and (full .. '.' .. id) or id  
+                if next(t) then -- Table not empty   
+                    table.insert(out, tag .. '{')   
+                    for key,value in pairs(t) do   
+                        table.insert(out,table_r(value,key,indent .. '   ',tableList[t]))   
+                    end   
+                    table.insert(out,indent .. '}')   
+                else table.insert(out,tag .. '{}') end   
+            end   
+        else  
+            local val = type(t)~="number" and type(t)~="boolean" and '"'..tostring(t)..'"' or tostring(t)   
+            table.insert(out, tag .. val)   
+        end   
+        return table.concat(out, '\n')   
+    end
+
+    return print(string.format("%s", tostring(table_r(t,name or 'Value', indent or ''))))
+end
+
+
+function table.getIndex(myTable, object)
+    local key_index = -1
+
+    for key, value in pairs(myTable) do
+        if value == object then
+            key_index = key
+        end
+    end
+
+    return key_index
+end
+
+-- 设置所有子物体是否可见
+function functions.SetActiveAllChildren(parent, active)
+    local parent = parent.transform
+    for i = 0, parent.childCount - 1, 1 do
+        local child = parent:GetChild(i).gameObject
+        child.gameObject:SetActive(active)
+    end
+end
+
+-- 生成对象
+function functions.GetGo(parent, prefab)
+    local go = nil
+
+    local count = parent.transform.childCount
+    for i = 0, count - 1, 1 do
+        local child = parent.transform:GetChild(i).gameObject
+        if child.gameObject.activeSelf == false then
+            go = child
+            break
+        end
+    end
+
+    if go == nil then
+        go = UnityEngine.GameObject.Instantiate(prefab)
+    end
+    go.name = prefab.name
+    go.transform:SetParent(parent.transform)
+    go.transform.localScale = UnityEngine.Vector3.one
+    go.gameObject.gameObject:SetActive(true)
+
+    return go
+end
+
+Color = Color or {}
+-- 哈希颜色转RGB颜色
+function Color.HexToRGBA(hexColor)
+    local color = UnityEngine.Color(1, 1, 1, 1)
+  
+    if type(hexColor) ~= "string" then
+        return color
+    end
+    if #hexColor == 6 then
+        hexColor = hexColor .. "FF"
+    end
+    if #hexColor ~= 8 then
+        return color
+    end
+  
+    local r = tonumber(string.sub(hexColor, 1, 2), 16)
+    local g = tonumber(string.sub(hexColor, 3, 4), 16)
+    local b = tonumber(string.sub(hexColor, 5, 6), 16)
+    local a = tonumber(string.sub(hexColor, 7, 8), 16)
+    color = UnityEngine.Color(r / 255, g / 255, b / 255, a / 255)
+  
+    return color
+end
+
+---
+array = array or {}
+function array.filter(arr, func)
+    local res = {}
+    for index, value in ipairs(arr) do
+        if func(value) then
+            table.insert(res,value)
+        end
+    end
+    return res
+end
+
+function array.reduce(arr,func,init)
+    for index, value in ipairs(arr) do
+        init = func(init,value,index)
+    end
+    return init
+end
+
+function table.reduce(tbl,func,init)
+    for key, value in pairs(tbl) do
+        init = func(init,value,key)
+    end
+    return init
+end
+
+---@type fun(object:table):table @深拷贝
+function deepcopy(object)
+    local lookup_table = {}
+    local function _copy(object)
+        if type(object) ~= "table" then
+            return object
+        elseif lookup_table[object] then
+            return lookup_table[object]
+        end
+
+        local new_table = {}
+        lookup_table[object] = new_table
+        for index, value in pairs(object) do
+            new_table[_copy(index)] = _copy(value)
+        end
+        return setmetatable(new_table, getmetatable(object))
+    end
+    return _copy(object)
+end
+
+
+function RandomSort(myTable)
+    -- math.randomseed(tonumber(tostring(os.time()):reverse():sub(1,6)))
+    table.sort(myTable, function(a, b)
+        return math.random(1, 10) < 5
+    end)
+end
+
+
+function Add(items1, items2)
+    if #items1 == 1 and #items2 == 1 then -- 1对1
+        if items1[1].type == 2 and items2[1].type == 3 then -- 食物 + 刀
+            items1[1].state = 2
+            return items1
+        elseif items1[1].type == 2 and items2[1].type == 2 then -- 食物 + 食物
+            for index, value in ipairs(items2) do
+                table.insert(items1, value)
+            end
+            return items1
+        elseif items1[1].type == 3 and items2[1].type == 3 then -- 刀 + 刀
+            items1[1].number = items1[1].number + items2[1].number
+            return items1
+        end
+    elseif #items1 == 1 and #items2 > 1 then -- 1对多
+        if items1[1].type == 2 and items2[1].type == 2 then -- 食物 + 食物
+            for index, value in ipairs(items2) do
+                table.insert(items1, value)
+            end
+            return items1
+        end
+    elseif #items1 > 1 and #items2 > 1 then -- 多对多
+        if items1[1].type == items2[1].type then
+            for index, value in ipairs(items2) do
+                table.insert(items1, value)
+            end
+            return items1
+        end
+    end
+
+    -- if item1.type == 2 then
+    --     if item1.state == 1 and item2.type == 3 then
+    --         item1.state = 2
+    --         return item1
+    --     end
+    -- elseif item1.type == 3 then
+    --     if item2.type == 3 then
+    --         item1.number = item1.number + 1
+    --         return item1
+    --     end
+    -- end
+
+    return nil
+end
+
+
+
+function AddItem(param)
+    for i = #param.condition, 1, -1 do
+        for index, value in ipairs(param.data) do
+            if value[param.condition[i].key] == param.condition[i].value then
+                table.remove(param.condition, i)
+                table.remove(param.data, index)
+                break
+            end
+        end
+    end
+
+    if next(param.condition) == nil then
+        return true
+    else
+        return false
+    end
+end
+
+-- 数组1是否包含数组2
+function functions.IsContainArray(array1, array2)
+    local isTrue = false
+
+    local copy_array1 = deepcopy(array1)
+    local copy_array2 = deepcopy(array2)
+
+    for index1 = #copy_array1, 1, -1 do
+        local item1 = copy_array1[index1]
+        for index2 = #copy_array2, 1, -1 do
+            local item2 = copy_array2[index2]
+            if item1 == item2 then
+                table.remove(copy_array1, index1)
+                table.remove(copy_array2, index2)
+                break
+            end
+        end
+    end
+
+    if #copy_array2 == 0 then
+        isTrue = true
+    else
+        isTrue = false
+    end
+
+    return isTrue
+end
+
+-- talbe1是否包含talbe2
+function functions.IsContainTable(table1, table2)
+    local isTrue = false
+
+    local copy_table1 = deepcopy(table1)
+    local copy_table2 = deepcopy(table2)
+
+    for key1, item1 in pairs(copy_table1) do
+        for key2, item2 in pairs(copy_table2) do
+        	local isRemove = false
+            if item1 == item2 then
+                isRemove = true
+			elseif type(item1) == "table" and type(item2) == "table" then
+       			isRemove = functions.IsContainTable(item1, item2)
+            end
+
+            if isRemove then
+	            copy_table1[key1] = nil
+                copy_table2[key2] = nil
+	            break
+            end
+        end
+    end
+
+    if next(copy_table1) == nil and next(copy_table2) == nil then
+        isTrue = true
+    else
+        isTrue = false
+    end
+
+    return isTrue
+end
+
+-- 读取文件
+function readfile(path)
+    local file = io.open(path, "r")
+    if file then
+        local content = file:read("*a")
+        io.close(file)
+        return content
+    end
+    return nil
+end
+-- 写入文件
+function writefile(path, content, mode)
+    mode = mode or "w+b"
+    local file = io.open(path, mode)
+    if file then
+        if file:write(content) == nil then
+            return false
+        end
+        io.close(file)
+        return true
+    else
+        return false
+    end
+end
+
+
+-- function ShuaiToNumber(param)
+--     local res = tonumber(param)
+--     if res == nil then
+--         res = 0
+--     end
+--     return res
+-- end
+
+function GetName(items)
+    return SB.wuxingList[items.id].name
+end
+
+function Judge(item1, item2)
+    print_t(item1, "item1")
+    print_t(item2, "item2")
+
+    local res = nil
+    if item1.id == item2.id then
+        if item1.id == 2 then
+            if item1.attack == item2.attack then
+                item1.attack = item1.attack + item2.attack
+                print(item1.attack)
+                res = deepcopy(item1)
+            end
+        elseif item1.id == 3 then
+            if item1.defense == item2.defense then
+                item1.defense = item1.defense + item2.defense
+                res = deepcopy(item1)
+                print(item1.defense)
+            end
+        elseif item1.id == 4 then
+            if item1.hp == item2.hp then
+                item1.hp = item1.hp + item2.hp
+                res = deepcopy(item1)
+                print(item1.hp)
+            end
+        end
+    else
+        if item1.id == 1 then
+            if item2.id == 2 or item2.id == 3 or item2.id == 4 then
+                local items = array.filter(SB.wuxingList, function(value)
+                    return value.id == item2.id
+                end)
+
+                local _type = items[1].type
+                if item2[_type] > item1[_type] then
+                    item1[_type] = item2[_type]
+                end
+                
+                res = deepcopy(item1)
+            
+            elseif item2.id == 5 then
+
+            end
+        end
+        
+    end
+
+    -- item1.attack = ShuaiToNumber(item1.attack) + ShuaiToNumber(item2.attack) -- items[1].add
+    -- item1.defense = ShuaiToNumber(item1.defense) + ShuaiToNumber(item2.defense)
+    -- item1.hp = ShuaiToNumber(item1.hp) + ShuaiToNumber(item2.hp)
+
+    return res
+end

@@ -1,0 +1,46 @@
+---@class 游戏管理类
+GameManager = GameManager or {}
+local _M = GameManager
+
+
+
+function _M:__init__()
+    GameManager:Menu()
+    -- GameManager:StartGame()
+    -- GameManager:CloseAll()
+end
+
+-- 菜单界面
+function GameManager:Menu()
+    GameManager:CloseAll()
+    MenuPanel:Open()
+end
+
+-- 开始游戏
+function GameManager:StartGame(params)
+    -- SB.level = params.level
+    
+    GameManager:CloseAll()
+    GamePanel:Open()
+end
+
+-- 结算
+function GameManager:Result(params)
+    -- GameManager:CloseAll()
+    ResultPanel:Open()
+    if params.result == true then
+        ResultPanel:Win()
+    else
+        ResultPanel:Lose()
+    end
+end
+
+-- 关闭所有
+function GameManager:CloseAll()
+    -- print_t("关闭所有")
+    MenuPanel:Close()
+    GamePanel:Close()
+    ResultPanel:Close()
+end
+
+GameManager:__init__()

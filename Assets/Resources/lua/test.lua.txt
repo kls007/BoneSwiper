@@ -1,0 +1,122 @@
+test = test or {}
+local _M = test
+
+function _M:__init__()
+    _M:InitView()
+    _M:Main()
+end
+
+function _M:InitView()
+    self.gameObject = UnityEngine.GameObject.Find("TestPanel").gameObject
+    self.transform = self.gameObject.transform
+    local transform = self.transform
+
+    -- 自动生成
+    self.Button_currentColor = self.transform:Find("$currentColor"):GetComponent("Button")
+    self.Image_currentColor = self.transform:Find("$currentColor"):GetComponent("Image")
+    self.Button_Button_clear = self.transform:Find("$Button_clear"):GetComponent("Button")
+    self.Image_Button_clear = self.transform:Find("$Button_clear"):GetComponent("Image")
+    self.pallete = {
+        gameObject = transform:Find("-pallete").gameObject,
+        Button_Image = self.transform:Find("-pallete/$Image"):GetComponent("Button"),
+        Image_Image = self.transform:Find("-pallete/$Image"):GetComponent("Image")
+    }
+    self.pixels = {
+        gameObject = transform:Find("-pixels").gameObject,
+        Button_pixel = self.transform:Find("-pixels/$pixel"):GetComponent("Button"),
+        Image_pixel = self.transform:Find("-pixels/$pixel"):GetComponent("Image")
+    }
+    -- 自动生成
+end
+
+function _M:Main()
+    self:AddListener()
+    self:Start()
+end
+
+function _M:AddListener()
+    UnityEngine.EventTriggerListener.Get(self.Button_Button_clear.gameObject, nil).onClick = function()
+        for y = 1, self.row, 1 do
+            for x = 1, self.col, 1 do
+                self.list[y][x]:GetComponent("Image").color = Color.HexToRGBA("ffffff")
+            end
+        end
+    end
+
+    UnityEngine.EventTriggerListener.Get(self.Button_currentColor.gameObject, nil).onClick = function()
+        for y = 1, self.row, 1 do
+            for x = 1, self.col, 1 do
+                self.list[y][x]:GetComponent("Image").color = self.Button_currentColor.gameObject:GetComponent("Image").color
+            end
+        end
+    end
+
+    self.buttonList = {}
+    local parent = self.pallete.gameObject.transform
+    local prefab = parent.transform:GetChild(0).gameObject
+    functions.SetActiveAllChildren(parent, false)
+    for i = 1, #SB.colors, 1 do
+        local gameObject = functions.GetGo(parent, prefab)
+        local image = gameObject:GetComponent("Image")
+        image.color = Color.HexToRGBA(SB.colors[i])
+
+        UnityEngine.EventTriggerListener.Get(gameObject, nil).onClick = function()
+            local clickButtonImage = gameObject:GetComponent("Image")
+            self.Image_currentColor.color = clickButtonImage.color
+        end
+
+        self.buttonList[i] = gameObject
+    end
+end
+
+function _M:DrawColor(gameObject)
+    local clickButtonImage = gameObject:GetComponent("Image")
+    clickButtonImage.color = self.Image_currentColor.color
+end
+
+function _M:Start()
+    self.row = 15
+    self.col = 15
+    self.width = 60
+    self.space = 2
+    self.list = {}
+    for y = 1, self.row, 1 do
+        self.list[y] = {}
+        for x = 1, self.col, 1 do
+            self.list[y][x] = 0
+        end
+    end
+
+    local parent = self.pixels.gameObject.transform
+    local prefab = parent.transform:GetChild(0).gameObject
+    functions.SetActiveAllChildren(parent, false)
+    for y = 1, self.row, 1 do
+        self.list[y] = {}
+        for x = 1, self.col, 1 do
+            local gameObject = functions.GetGo(parent, prefab)
+            self.list[y][x] = gameObject
+            gameObject.name = y .. "_" .. x
+            gameObject:GetComponent("RectTransform").sizeDelta = CS.UnityEngine.Vector2(self.width, self.width)
+            gameObject.transform.localPosition =
+                CS.UnityEngine.Vector3(x * (self.width + self.space) - 500, y * (self.width + self.space) - 680, 0)
+
+            UnityEngine.EventTriggerListener.Get(gameObject, nil).onDown = function()
+                self.isDown = true
+                self:DrawColor(gameObject)
+            end
+            UnityEngine.EventTriggerListener.Get(gameObject, nil).onUp = function()
+                self.isDown = false
+            end
+            UnityEngine.EventTriggerListener.Get(gameObject, nil).onEnter = function()
+                if self.isDown == true then
+                    self:DrawColor(gameObject)
+                end
+            end
+        end
+    end
+
+    self.colorIndex = 1
+    self.Image_currentColor.color = self.buttonList[self.colorIndex].gameObject:GetComponent("Image").color
+end
+
+_M:__init__()

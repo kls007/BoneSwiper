@@ -1,0 +1,52 @@
+---@class MenuPanel
+MenuPanel = MenuPanel or {}
+local _M = MenuPanel
+
+function _M:__init__()
+    _M:InitView()
+    _M:Main()
+end
+
+function _M:InitView()
+    self.gameObject = UnityEngine.GameObject.Find("Canvas/Root_Panel/MenuPanel").gameObject
+    self.transform = self.gameObject.transform
+    --
+
+    self.Image_mask = self.transform:Find("$mask"):GetComponent("Image");
+    self.Text_level = self.transform:Find("$mask/$level"):GetComponent("Text");
+    self.Button_Button_start = self.transform:Find("$mask/$Button_start"):GetComponent("Button");
+    self.Image_Button_start = self.transform:Find("$mask/$Button_start"):GetComponent("Image");
+    
+    
+    
+    
+    
+end
+
+function _M:Main()
+    self.gameObject:SetActive(false)
+
+    -- for index, Button in ipairs(self.button_list) do
+        UnityEngine.EventTriggerListener.Get(self.Button_Button_start.gameObject, nil).onClick = function()
+            GameManager:StartGame()
+        end
+    -- end
+end
+
+function _M:Open()
+    self.gameObject:SetActive(true)
+    -- AudioManager.AudioSource_bgm_menu:Play()
+
+    self:Refresh()
+end
+
+function _M:Close()
+    self.gameObject:SetActive(false)
+    -- AudioManager.AudioSource_bgm_menu:Stop()
+end
+
+function _M:Refresh(param)
+    -- self.Text_level.text = "当前关卡: " .. UnityEngine.PlayerPrefs.GetInt("level", 1)
+end
+
+_M:__init__()

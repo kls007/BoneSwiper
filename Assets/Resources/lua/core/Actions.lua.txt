@@ -1,0 +1,422 @@
+-- Runnable Delay Sequence Move
+-- 1.修改Actions静态方法为 .Create .Play .Stop (仍然保留老方法)
+-- 2.增加Sequence方法 1) addAction 2) addDelay
+
+--- [[全局 静态 Actions]]
+local Actions = {actions = {}}
+local ActionsClass = {} --所有动作类 table
+_G.Actions = Actions
+
+function Actions.New(name, ...)
+    local action = {}
+    setmetatable(action, ActionsClass[name])
+    action:init(...)
+    return action
+end
+
+---@private @增加了 报错输出，不会中断其他 动作
+function Actions:update()
+    for k, _ in pairs(self.actions) do
+        --print("--------------------actions"..v) ??
+        local status = false
+        local ret = false
+
+        status = true
+        ret = k:act(UnityEngine.Time.deltaTime)
+        
+        if status == false then
+            self.actions[k] = nil
+        else
+            if ret then
+                -- 先移除后调用complete防止在complete里调用再次开启action
+                self.actions[k] = nil
+                k:onComplete()
+            end
+        end
+    end
+end
+
+---@field runRestart boolean @是否需要restart() 默认执行
+function Actions:play(action, runRestart)
+    runRestart = runRestart == nil or runRestart -- 默认为true
+    if (runRestart) then
+        action:restart()
+    end
+    self.actions[action] = 1
+end
+
+---@field runComplete boolean @是否需要执行complete() 默认不执行
+function Actions:stop(action, runComplete)
+    if not self.actions[action] then
+        return
+    end -- 注意如果action没有在运行就跳出
+    runComplete = runComplete == nil or runComplete -- 默认为true
+    if (runComplete) then
+        action:onComplete()
+    end
+    self.actions[action] = nil
+end
+
+function Actions.IsRunning(action)
+    return Actions.actions[action] ~= nil
+end
+
+-- 静态方法
+Actions.Create = Actions.New
+---@param runRestart boolean @是否需要restart() 默认执行
+function Actions.Play(action, runRestart)
+    self = Actions
+    runRestart = runRestart == nil or runRestart -- 默认为true
+    if (runRestart) then
+        action:restart()
+    end
+    self.actions[action] = 1
+end
+
+---@param runComplete boolean @是否需要执行complete() 默认不执行
+function Actions.Stop(action, runComplete)
+    self = Actions
+    if not self.actions[action] then
+        return
+    end -- 注意如果action没有在运行就跳出
+    runComplete = runComplete == nil or runComplete -- 默认为true
+    if (runComplete) then
+        action:onComplete()
+    end
+    self.actions[action] = nil
+end
+
+---@param target string @停止所有 (target 表示注册用的目标)
+function Actions.StopAll(target)
+    self = Actions
+    if target == nil then
+        self.actions = {}
+    else
+        for k, _ in pairs(self.actions) do
+            if (k._target == target) then
+                self.actions[k] = nil
+            end
+        end
+    end
+end
+
+if (Actions.handle == nil) then
+    Event.AddListener("LuaUpdate", function(params)
+        -- print("LuaUpdate")
+        Actions:update()
+    end)
+end
+
+--[[动作类 父类]]
+---@field private Complete fun():void
+local Action = {Complete = nil}
+Action.__index = Action
+function Action:setTarget(target)
+    self._target = target
+    return self
+end
+---@private
+function Action:init(...)
+end
+---@private
+function Action:act(_)
+    return true
+end
+---@private
+function Action:restart()
+end
+---@private
+function Action:onComplete()
+    if self.Complete then
+        self.Complete()
+    end
+end
+---@public
+---@param func fun():void
+function Action:setComplete(func)
+    if not func or type(func) ~= "function" then
+        error("func parameter in addlistener function has to be function, " .. type(func) .. " not right")
+    end
+    self.Complete = func
+    return self
+end
+
+---@private
+---@param name string @创建动作子类
+---@param table table @原型
+function Action.CreateClass(name, table)
+    local newclass = table
+    setmetatable(newclass, Action)
+    newclass.__index = newclass
+    ActionsClass[name] = newclass
+    return newclass
+end
+
+--[[Delay]]
+local DelayAction = Action.CreateClass("Delay", {time = 0, duration = 0})
+
+---@param duration number @时间长度
+function DelayAction:init(duration)
+    self.duration = duration
+    self.time = 0
+end
+
+---@private
+function DelayAction:act(delta)
+    if (self.time < self.duration) then
+        self.time = self.time + delta
+        if (self.time < self.duration) then
+            return false
+        end
+    end
+    return true
+end
+
+---@private
+function DelayAction:restart()
+    self.time = 0
+end
+
+--[[Runnable]]
+---@class RunnableAction:Action
+local RunnableAction = Action.CreateClass("Runnable", {runnable = nil})
+---@private
+function RunnableAction:init(runnable)
+    self.runnable = runnable
+end
+---@private
+function RunnableAction:act()
+    self.runnable()
+    return true
+end
+
+--[[Sequence]]
+---@class SequenceAction:Action
+local SequenceAction = Action.CreateClass("Sequence", {actions = nil, index = 1})
+---@private
+function SequenceAction:init(...)
+    self.actions = ... or {}
+    self.index = 1
+end
+---@public
+---@field action Action
+function SequenceAction:add(action)
+    self.actions[#self.actions + 1] = action
+    return self
+end
+---@public
+---@field runnable fun():void
+function SequenceAction:addAction(runnable)
+    self.actions[#self.actions + 1] = Actions.Create("Runnable", runnable)
+    return self
+end
+---@public
+---@field delay number
+function SequenceAction:addDelay(delay)
+    self.actions[#self.actions + 1] = Actions.Create("Delay", delay)
+    return self
+end
+---@private
+function SequenceAction:act(delta)
+    if (self.index > #self.actions) then
+        return true
+    end
+    local _action = self.actions[self.index]
+    if (_action:act(delta) == true) then
+        _action:onComplete()
+        self.index = self.index + 1
+        if (self.index > #self.actions) then
+            return true
+        end
+    end
+    return false
+end
+---@private
+function SequenceAction:restart()
+    self.index = 1
+    for i = 1, #self.actions do
+        self.actions[i]:restart()
+    end
+end
+
+--- [[Move]]
+---@class MoveAction
+---@param target any
+---@param duration number
+---@param beginPos Vector3
+---@param endPos Vector3
+local MoveAction = Action.CreateClass("Move", {target = nil, duration = 0, beginPos = nil, endPos = nil})
+function MoveAction:init(target, duration, beginPos, endPos, islocal, easing)
+    self.islocal = islocal or false
+    self.target = target
+    self.duration = duration
+    self.beginPos = beginPos
+    self.endPos = endPos
+    self.easing = easing
+    if (self.islocal) then
+        self.target.localPosition = self.beginPos
+    else
+        self.target.position = self.beginPos
+    end
+    self._time = 0
+    self._pos = nil
+end
+---@private
+function MoveAction:act(delta)
+    self._time = self._time + delta
+    local percent = self._time / self.duration
+
+    self._pos = Actions.LerpEasing(self.beginPos, self.endPos, percent, self.easing, self._pos)
+    if (self.islocal) then
+        self.target.localPosition = self._pos
+    else
+        self.target.position = self._pos
+    end
+    return percent >= 1
+end
+---@private
+function MoveAction:restart()
+    self._time = 0
+end
+
+
+-- Move Sp Action --
+local MoveSpAction = Action.CreateClass("MoveSp", {target = nil, duration = 0, beginPos = nil, endPos = nil})
+function MoveSpAction:init(target, duration, beginPos, endPos, midDistance, midDuration, islocal, easing)
+    self.islocal = islocal or false
+    self.target = target
+    self.duration = duration
+    self.beginPos = beginPos
+    self.midDistance = midDistance
+    self.midDuration = midDuration
+    self.endPos = endPos
+    self.easing = easing
+    if (self.islocal) then
+        self.target.localPosition = self.beginPos
+    else
+        self.target.position = self.beginPos
+    end
+    self._time = 0
+    self._pos = nil
+end
+function MoveSpAction:act(delta)
+    self._time = self._time + delta
+
+    local percent = 0
+    local endPos
+    if (self._time < self.midDuration) then
+        percent = self._time / (self.midDuration * 2)
+        endPos = self.beginPos + self.midDistance * 2
+    else
+        percent = self._time / self.duration
+        endPos = self.endPos
+    end
+
+    self._pos = Actions.LerpEasing(self.beginPos, endPos, percent, self.easing, self._pos)
+    if (self.islocal) then
+        self.target.localPosition = self._pos
+    else
+        self.target.position = self._pos
+    end
+    return percent >= 1
+end
+function MoveSpAction:restart()
+    self._time = 0
+end
+
+--- Repeat Action 暂时的简单实现,永远循环
+---@class RepeatAction
+---@field target any
+---@field updatefunc fun():void
+local RepeatAction = Action.CreateClass("Repeat", {target = nil, updatefunc = nil})
+---@private
+function RepeatAction:init(updatefunc)
+    self.updatefunc = updatefunc
+end
+---@private
+function RepeatAction:act(delta)
+    self.updatefunc(delta)
+    return false
+end
+
+--- 缓冲方法
+local Easing = {}
+_G.Easing = Easing
+
+--[[easing t:time b:begin c:change=end-begin d=duration]]
+function Easing.outCubic(t, b, c, d)
+    t = t / d - 1
+    return c * (math.pow(t, 3) + 1) + b
+end
+
+function Easing.inOutCubic(t, b, c, d)
+    t = t / d * 2
+    if t < 1 then
+        return c / 2 * t * t * t + b
+    else
+        t = t - 2
+        return c / 2 * (t * t * t + 2) + b
+    end
+end
+
+function Easing.outInCubic(t, b, c, d)
+    if t < d / 2 then
+        return Easing.outCubic(t * 2, b, c / 2, d)
+    else
+        return Easing.inCubic((t * 2) - d, b + c / 2, c / 2, d)
+    end
+end
+
+function Easing.outExpo(t, b, c, d)
+    if t == d then
+        return b + c
+    else
+        return c * 1.001 * (-math.pow(2, -10 * t / d) + 1) + b
+    end
+end
+
+
+function Clamp01(value)
+	if value < 0 then
+		return 0
+	elseif value > 1 then
+		return 1   
+	end
+	
+	return value
+end
+
+function Actions.LerpEasing(from, to, t, easing, out)
+    if (easing == nil) then
+        t = Clamp01(t)
+    else
+        t = Clamp01(easing(t, 0, 1, 1))
+    end
+
+    if out then
+        out.x = from.x + (to.x - from.x) * t
+        out.y = from.y + (to.y - from.y) * t
+        out.z = from.z + (to.z - from.z) * t
+        return out
+    else
+        return CS.UnityEngine.Vector3(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t, from.z + (to.z - from.z) * t)
+    end
+end
+
+-- function Quaternion.LerpEasing(from, to, t, out)
+--     t = Clamp01(t)
+--     if out then
+--         out.x = from.x + (to.x - from.x) * t
+--         out.y = from.y + (to.y - from.y) * t
+--         out.z = from.z + (to.z - from.z) * t
+--         out.w = from.w + (to.w - from.w) * t
+--         return out
+--     else
+--         return Quaternion.New(
+--             from.x + (to.x - from.x) * t,
+--             from.y + (to.y - from.y) * t,
+--             from.z + (to.z - from.z) * t,
+--             from.w + (to.w - from.w) * t
+--         )
+--     end
+-- end

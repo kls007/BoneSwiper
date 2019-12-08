@@ -1,0 +1,61 @@
+---@class ResultPanel
+ResultPanel = ResultPanel or {}
+local _M = ResultPanel
+
+function _M:__init__()
+    _M:InitView()
+    _M:Main()
+end
+
+function _M:InitView()
+    self.gameObject = UnityEngine.GameObject.Find("Canvas/Root_Panel/ResultPanel").gameObject
+    self.transform = self.gameObject.transform
+
+    self.Image_mask = self.transform:Find("$mask"):GetComponent("Image");
+    self.Text_win = self.transform:Find("$mask/$win"):GetComponent("Text");
+    self.Text_lose = self.transform:Find("$mask/$lose"):GetComponent("Text");
+    self.Button_nextLevel = self.transform:Find("$Button_nextLevel"):GetComponent("Button");
+    self.Image_Button_nextLevel = self.transform:Find("$Button_nextLevel"):GetComponent("Image");
+    self.Button_replay = self.transform:Find("$Button_replay"):GetComponent("Button");
+    self.Image_Button_replay = self.transform:Find("$Button_replay"):GetComponent("Image");
+end
+
+function _M:Main()
+    self.gameObject:SetActive(false)
+
+    UnityEngine.EventTriggerListener.Get(self.Button_nextLevel.gameObject, nil).onClick = function()
+        self:Close()
+        GamePanel:NextLevel()
+    end
+
+    UnityEngine.EventTriggerListener.Get(self.Button_replay.gameObject, nil).onClick = function()
+        self:Close()
+        GamePanel:Start()
+    end
+end
+
+function _M:Open()
+    self.gameObject:SetActive(true)
+end
+
+function _M:Close()
+    self.gameObject:SetActive(false)
+end
+
+function _M:Win()
+    self.gameObject:SetActive(true)
+    self.Text_win.gameObject:SetActive(true)
+    self.Text_lose.gameObject:SetActive(false)
+    self.Button_replay.gameObject:SetActive(true)
+    self.Button_nextLevel.gameObject:SetActive(true)
+end
+
+function _M:Lose()
+    self.gameObject:SetActive(true)
+    self.Text_win.gameObject:SetActive(false)
+    self.Text_lose.gameObject:SetActive(true)
+    self.Button_replay.gameObject:SetActive(true)
+    self.Button_nextLevel.gameObject:SetActive(false)
+end
+
+_M:__init__()

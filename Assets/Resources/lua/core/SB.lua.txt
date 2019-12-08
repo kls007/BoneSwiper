@@ -1,0 +1,134 @@
+SB = {}
+
+SB.level = 1
+SB.score = 0
+-- SB.item_number = 0
+-- SB.button_number = 0
+-- SB.task_number = 0
+-- SB.task_time_level = 0
+-- SB.task_time_current = 0
+-- SB.task_time_second = 0
+
+SB.row = 4 -- 行
+SB.col = 4 -- 列
+SB.space = 10 -- 空格
+
+SB.list = {}
+for y = 1, SB.row, 1 do
+    SB.list[y] = {}
+    for x = 1, SB.col, 1 do
+        SB.list[y][x] = {}
+    end
+end
+
+-- SB.wuxingList = 
+-- {
+--     {id = 1, name = "金", add = 3, state = 1, number = 1, color = "f1f1b8", icon = "sprite/food/Tomato_Icon"},
+--     {id = 2, name = "木", add = 4, state = 1, number = 1, color = "b7d28d", icon = "sprite/food/Tomato_Icon"},
+--     {id = 3, name = "水", add = 2, state = 1, number = 1, color = "b8f1ed", icon = "sprite/food/Lettuce_Icon"},
+--     {id = 4, name = "火", add = 5, state = 1, number = 1, color = "e27386", icon = "sprite/food/Tomato_Icon"},
+--     {id = 5, name = "土", add = 1, state = 1, number = 1, color = "c17e61", icon = "sprite/caidao"},
+-- }
+
+SB.wuxingList = 
+{
+    {id = 1, name = "我", add = 3, type = "player", number = 2, color = "f2debd", icon = "sprite/food/Tomato_Icon"},
+    {id = 2, name = "刀", add = 4, type = "attack", number = 2, color = "b8f1ed", icon = "sprite/food/Tomato_Icon"},
+    {id = 3, name = "盾", add = 2, type = "defense", number = 2, color = "f1f1b8", icon = "sprite/food/Lettuce_Icon"},
+    {id = 4, name = "血", add = 5, type = "hp", number = 2, color = "b8f1cc", icon = "sprite/food/Tomato_Icon"},
+    {id = 5, name = "骷髅", add = 1, type = "enemy", number = 2, color = "f16d7a", icon = "sprite/caidao"},
+
+}
+
+
+-- 199 浅灰
+-- 185 深灰
+
+SB.colors = 
+{
+    -- 白
+    "ffffff",
+    -- 黑
+    "000000",
+
+    -- 马卡龙草莓奶霜
+    "f16d7a",
+    -- 马卡龙玫瑰
+    "e27386",
+    -- 马卡龙玫瑰粉红
+    "f55066",
+    -- 马卡龙-基尔Anperiaru 
+    "ef5464",
+    -- 大巧克力杏仁饼
+    "ae716e",
+    -- 巧克力马卡龙
+    "cb8e85",
+    -- 杏仁饼，果仁糖，巧克力
+    "cf8878",
+    -- 覆盆子马卡龙
+    "c86f67",
+    -- 杏仁饼香草奶油
+    "f2debd",
+    -- 马卡龙抹茶奶霜
+    "b7d28d",
+    -- 开心果杏仁杏仁饼
+    "dcff93",
+    -- 牛奶咖啡马卡龙
+    "ff9b6a",
+    -- 马卡龙粉
+    "f1b8e4",
+    -- 杏仁饼紫
+    "d9b8f1",
+    -- 杏仁饼橙
+    "f1ccb8",
+    -- 杏仁饼黄色
+    "f1f1b8",
+    -- 杏仁饼海洋蓝
+    "b8f1ed",
+    -- 杏仁饼绿色
+    "b8f1cc",
+    -- 马卡龙枫武?aniyu 
+    "e7dac9",
+    -- 杏仁饼蔓藤
+    "e1622f",
+    -- 杏仁饼，柚子
+    "f3d64e",
+    -- 马卡龙玫瑰果
+    "fd7d36",
+    -- 马卡龙覆盆子乳酪蛋糕
+    "fe9778",
+    -- 马卡龙枫薰衣草
+    "c38e9e",
+    -- 巧克力马卡龙马龙
+    "f28860",
+    -- 马卡龙达米安
+    "de772c",
+    -- 马卡龙，果仁巧克力，充满异国情调
+    "e96a25",
+    -- 马卡龙黑醋栗，武（?）aniyu 
+    "ca7497",
+    -- 马卡龙激情巧克力
+    "e29e4b",
+    -- 马卡龙Powaru 
+    "edbf2b",
+    -- 马卡龙芒果激情
+    "fecf45",
+    -- 马卡龙柚子，覆盆子
+    "f9b747",
+    -- 马卡龙让JA斗
+    "c17e61",
+    -- 杏仁饼，牛轧糖，蒙特利马尔
+    "ed9678",
+    -- 马卡龙可可凤梨
+    "ffe543",
+    -- 马卡龙伯爵茶
+    "e37c5b",
+    -- 马卡龙巧克力，橙
+    "ff8240",
+    -- 马卡龙，巧克力樱桃色
+    "aa5b71",
+    -- 巧克力马卡龙Bananu 
+    "f0b631",
+    -- 马卡龙Kurakkure 
+    "cf8888",
+}

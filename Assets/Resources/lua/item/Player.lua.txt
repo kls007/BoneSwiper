@@ -1,0 +1,197 @@
+---@class 玩家
+Player = {}
+local _M = Player
+
+function Player:New(params)
+    local instance = {}
+    setmetatable(instance, self)
+    self.__index = self
+
+    instance.id = params.id
+    instance.data =
+        array.filter(
+        SB.wuxingList,
+        function(value)
+            return value.id == instance.id
+        end
+    )[1]
+
+    instance.x = params.x
+    instance.y = params.y
+    -- instance.type = instance.data.type or "attack"
+    instance.attack = params.attack or 0 -- 攻击
+    instance.defense = params.defense or 0 -- 防御
+    instance.hp = params.hp or 0 -- 血量
+
+    SB.list[instance.y][instance.x] = instance
+
+    instance:Create()
+    instance:InitView()
+    -- table.insert(instance.list, instance)
+    -- instance.gameObject = params.gameObject
+    -- instance.transform = instance.gameObject.transform
+
+    return instance
+end
+
+-- 生成物体
+function Player:Create()
+    local canvas = UnityEngine.GameObject.Find("Canvas").gameObject
+    self.canvasWH = canvas:GetComponent("RectTransform").sizeDelta -- 画布宽高
+    self.cellWidth = (self.canvasWH.x - (SB.space * (SB.row - 1))) / SB.row -- 单元格宽高
+
+    self.gameObject = functions.GetGo(GamePanel.parent, GamePanel.prefab)
+    self.transform = self.gameObject.transform
+    self.transform.localScale = UnityEngine.Vector3.one
+    self.transform.localPosition = UnityEngine.Vector3.zero
+    self.gameObject:SetActive(true)
+    self.gameObject.name = self.x .. "-" .. self.y
+
+    self.rectTransform = self.gameObject:GetComponent("RectTransform")
+    -- 设置宽高
+    self.rectTransform.sizeDelta = UnityEngine.Vector2(self.cellWidth, self.cellWidth)
+
+    self:RefreshPosition()
+end
+
+-- 初始化UI
+function Player:InitView()
+    self.Image_item = self.transform:Find(""):GetComponent("Image")
+    self.Text_Text_name = self.transform:Find("$Text_name"):GetComponent("Text")
+    self.Text_Text_attack = self.transform:Find("$Text_attack"):GetComponent("Text")
+    self.Text_Text_defense = self.transform:Find("$Text_defense"):GetComponent("Text")
+    self.Text_Text_hp = self.transform:Find("$Text_hp"):GetComponent("Text")
+
+    self:RefreshUI()
+end
+
+-- 刷新
+function Player:RefreshUI()
+    self.Text_Text_name.text = self.data.name
+    self.Text_Text_attack.text = self.attack
+    self.Text_Text_defense.text = self.defense
+    self.Text_Text_hp.text = self.hp
+
+    self.Text_Text_name.color = Color.HexToRGBA(self.data.color)
+    self.Image_item.color = Color.HexToRGBA(self.data.color)
+
+    self.Text_Text_attack.gameObject:SetActive(
+        self.data.type == "attack" or self.data.type == "player" or self.data.type == "enemy"
+    )
+    self.Text_Text_defense.gameObject:SetActive(
+        self.data.type == "defense" or self.data.type == "player" or self.data.type == "enemy"
+    )
+    self.Text_Text_hp.gameObject:SetActive(
+        self.data.type == "hp" or self.data.type == "player" or self.data.type == "enemy"
+    )
+end
+
+
+
+function Player:RandomCreate(direction)
+    if Player:IsFull() then
+        print("满了~~~")
+        return
+    end
+
+    local randomRow = math.random(1, SB.row)
+    local randomCol = math.random(1, SB.col)
+
+    if direction == nil then
+    elseif direction.y == 1 and direction.x == 0 then -- 上
+        randomRow = 1
+    elseif direction.y == -1 and direction.x == 0 then -- 下
+        randomRow = self.row
+    elseif direction.y == 0 and direction.x == -1 then -- 左
+        randomCol = self.col
+    elseif direction.y == 0 and direction.x == 1 then -- 右
+        randomCol = 1
+    end
+
+    if next(SB.list[randomRow][randomCol]) == nil then
+        local params = {
+            x = randomCol,
+            y = randomRow,
+            id = math.random(2, 5),
+            attack = ({2, 4})[math.random(1, 2)],
+            defense = ({2, 4})[math.random(1, 2)],
+            hp = ({2, 4})[math.random(1, 2)]
+        }
+        local item = Player:New(params)
+
+        return item
+    else
+        return self:RandomCreate()
+    end
+end
+
+function Player:CreatePlayer()
+    if Player:IsFull() then
+        print("满了~~~")
+        return
+    end
+
+    local randomRow = math.random(1, SB.row)
+    local randomCol = math.random(1, SB.col)
+
+    if next(SB.list[randomRow][randomCol]) == nil then
+        local params = {
+            x = randomCol,
+            y = randomRow,
+            id = 1,
+            attack = 1,
+            defense = 0,
+            hp = 10
+        }
+        local player = Player:New(params)
+
+        return player
+    else
+        return self:CreatePlayer()
+    end
+end
+
+function Player:Left()
+    local x = self.x
+    local y = self.y
+    local one = SB.list[y][x]
+    local two = SB.list[y][x - 1]
+    if next(one) ~= nil then
+        print_t(y, "y")
+        print_t(x, "x")
+        
+        if next(two) == nil then
+            SB.list[y][x] = {}
+
+            SB.list[y][x - 1] = one
+            SB.list[y][x - 1].x = x - 1
+            SB.list[y][x - 1].y = y
+
+            
+            -- SB.list[y][x]:RefreshPosition()
+            SB.list[y][x - 1]:RefreshPosition()
+            -- Player:RefreshPosition()
+            return true
+        end
+    end
+end
+
+-- 刷新位置
+function Player:RefreshPosition()
+    -- 设置位置xy
+    local posX = -self.canvasWH.x / 2 + self.cellWidth * (self.x - 1 + 0.5) + (SB.space * (self.x - 1))
+    local posY = -self.canvasWH.x / 2 + self.cellWidth * (self.y - 1 + 0.5) + (SB.space * (self.y - 1))
+    self.gameObject.transform.localPosition = UnityEngine.Vector3(posX, posY, 0)
+end
+
+-- 检测是否满了 防止死循环
+function Player:IsFull()
+    for y = 1, SB.row, 1 do
+        for x = 1, SB.col, 1 do
+            if next(SB.list[y][x]) == nil then
+                return false
+            end
+        end
+    end
+    return true
+end

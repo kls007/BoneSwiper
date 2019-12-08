@@ -1,0 +1,135 @@
+ShuaiTest = {}
+local _M = ShuaiTest
+
+function _M.__init__()
+    ShuaiTest.require()
+end
+
+function _M.require()
+end
+
+function _M.Refresh(params)
+    local keyCode = params.keyCode
+    local keyCodeStr = tostring(keyCode)
+
+    package.loaded["lua/ShuaiTest"] = nil
+    require("lua/ShuaiTest")
+
+    local functionTestKeyCode = ShuaiTest["Test" .. keyCodeStr]
+    if functionTestKeyCode then
+        functionTestKeyCode()
+    else
+        TipManager.Show("Test" .. keyCodeStr .. "不存在")
+    end
+end
+
+function _M.TestQ()
+    -- print_t("QQQ", "ShuaiTest")
+    -- TipManager.Show("TestQ")
+
+    -- print_t(_VERSION, "_VERSION")
+
+    -- print_t(UnityEngine.Screen.width, "宽度")
+    -- print_t(UnityEngine.Screen.height, "高度")
+
+    -- GameManager:StartGame()
+
+    -- local params =
+    -- {
+    --     x = 1, y = 1,
+    --     attack = 100,
+    --     defense = 200,
+    --     hp = 300,
+    -- }
+    -- local player = Player:New(params)
+    -- GamePanel.list[y][x] = player
+
+    -- print_t(SB.list, "SB.list")
+    local player = Player:RandomCreate()
+    print_t(player, "player")
+
+    -- instance.data =
+    --     array.filter(
+    --     SB.wuxingList,
+    --     function(value)
+    --         return value.id == instance.id
+    --     end
+    -- )[1]
+end
+
+function _M.TestE()
+    print_t("EEE", "ShuaiTest")
+    -- TipManager.Show("TestE")
+
+    -- local gameObject = functions.GetGo(GamePanel.parent, GamePanel.prefab)
+    -- print_t(gameObject, "gameObject")
+
+    local player = Player:CreatePlayer()
+    print_t(player, "player")
+
+    -- GamePanel:InitData()
+    -- print_t(GamePanel.cellWidth, "GamePanel.cellWidth")
+
+    do
+        return
+    end
+
+    -- local SeqAction = Actions.New("Sequence"):setTarget("Test")
+    -- SeqAction:addAction(
+    --     function()
+    local go = functions.GetGo(GamePanel.parent, GamePanel.prefab)
+    local x = 1200
+    local action =
+        Actions.New("Move", go.transform, 0.3, UnityEngine.Vector3(100, x, 0), UnityEngine.Vector3(600, x, 0)):setTarget(
+        "Test"
+    )
+    action:setComplete(
+        function()
+        end
+    )
+    Actions:play(action)
+
+    -- end
+    -- )
+
+    -- Actions:play(SeqAction)
+
+    -- print_t(GamePanel.list, "GamePanel.list")
+end
+
+function _M.TestR()
+    -- print_t("RRR", "ShuaiTest")
+    -- TipManager.Show("TestR")
+    
+    print_t(SB.list, "SB.list")
+
+
+end
+
+function _M.TestW()
+    -- print_t("WWW", "ShuaiTest")
+    -- TipManager.Show("TestW")
+    GamePanel:Up()
+end
+
+function _M.TestS()
+    -- print_t("SSS", "ShuaiTest")
+    -- TipManager.Show("TestS")
+    GamePanel:Down()
+end
+
+function _M.TestA()
+    -- print_t("AAA", "ShuaiTest")
+    -- TipManager.Show("TestA")
+    GamePanel:Left()
+end
+
+function _M.TestD()
+    -- print_t("DDD", "ShuaiTest")
+    -- TipManager.Show("TestD")
+    GamePanel:Right()
+end
+
+_M.__init__()
+
+-- return _M

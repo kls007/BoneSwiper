@@ -1,0 +1,73 @@
+requireAll = requireAll or {}
+local _M = requireAll
+
+function _M.__init__()
+    _M.require()
+end
+
+function _M.require()
+    require "lua/define"
+
+    require "lua/tools/functions"
+    require "lua/tools/Easing"
+    require "lua/tools/tools"
+    json = require "lua/tools/json"
+    
+
+    require "lua/core/Event"
+    require "lua/core/GameUpdate"
+
+    require "lua/core/Actions"
+
+    -- require "lua/core/GlobalObject"
+    require "lua/core/SB"
+
+    
+    require "lua/manager/ABManager"
+    require "lua/manager/UIManager"
+    require "lua/manager/TipManager"
+    require "lua/manager/AgentManager"
+    -- require "lua/manager/AudioManager"
+    
+    require "lua/item/Player"
+
+    require "lua/ShuaiTest"
+
+    -- _M.requireData()
+    _M.requireGUI()
+    
+
+    require "lua/manager/GameManager"
+end
+
+-- 加载data数据lua文件
+function _M.requireData()
+    -- require "lua/data/animal" -- 动物
+
+    -- require "lua/data/food/fruit" -- 水果
+    -- require "lua/data/food/vegetable" -- 蔬菜
+
+    -- require "lua/data/human/female_star" -- 女明星
+    -- require "lua/data/human/male_star" -- 男明星
+
+    -- require "lua/data/mingzhu/xiyouji" -- 西游记
+    -- require "lua/data/mingzhu/sanguoyanyi" -- 三国演义
+    -- require "lua/data/mingzhu/shuihuzhuan" -- 水浒传
+    -- require "lua/data/mingzhu/hongloumeng" -- 红楼梦
+    -- require "lua/data/mingzhu/shanhaijing" -- 山海经
+end
+
+-- 加载界面lua文件
+function _M.requireGUI()
+    require "lua/gui/PanelClass" -- Panel父类
+
+    require "lua/gui/AlertPanel" -- 二级确认弹窗界面
+
+    
+    require "lua/gui/MenuPanel" -- 菜单界面
+    require "lua/gui/GamePanel" -- 游戏界面
+    require "lua/gui/ResultPanel" -- 结果界面
+    
+end
+
+_M.__init__()

@@ -1,0 +1,38 @@
+---@class 音效管理类
+AudioManager = AudioManager or {}
+local _M = AudioManager
+
+function _M:__init__()
+    self.gameObject = UnityEngine.GameObject.Find("Audios").gameObject
+    self.transform = self.gameObject.transform
+
+    
+    -- self.AudioSource_bgm_game = self.transform:Find("bgm/$AudioSource_bgm_game"):GetComponent("AudioSource");
+    -- self.AudioSource_bgm_menu = self.transform:Find("bgm/$AudioSource_bgm_menu"):GetComponent("AudioSource");
+    -- self.AudioSource_right = self.transform:Find("right/$AudioSource_right"):GetComponent("AudioSource");
+    -- self.AudioSource_amazing = self.transform:Find("right/$AudioSource_amazing"):GetComponent("AudioSource");
+    -- self.AudioSource_excellent = self.transform:Find("right/$AudioSource_excellent"):GetComponent("AudioSource");
+    -- self.AudioSource_unbelievable = self.transform:Find("right/$AudioSource_unbelievable"):GetComponent("AudioSource");
+    
+    
+end
+
+-- 播放音效
+function _M:PlayAuido(number)
+    -- if number > 0 then
+    --     local rightAudios = 
+    --     {
+    --         AudioManager.AudioSource_good,
+    --         AudioManager.AudioSource_great,
+    --         AudioManager.AudioSource_amazing,
+    --         AudioManager.AudioSource_excellent,
+    --         AudioManager.AudioSource_unbelievable,
+    --     }
+    --     local random = math.random(1, #rightAudios)
+    --     rightAudios[random]:Play()
+    -- elseif number < 0 then
+    --     AudioManager.AudioSource_error:Play()
+    -- end
+end
+
+AudioManager:__init__()
