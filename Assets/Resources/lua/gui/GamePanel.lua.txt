@@ -42,7 +42,7 @@ end
 function _M:Main()
     self:InitData()
     self:AddListener()
-    self:Start()
+    -- self:Start()
 end
 
 function _M:AddListener()
@@ -89,6 +89,7 @@ function _M:InitData()
 end
 
 function _M:Start()
+    print_t("GamePanel:Start()")
     self:Clear()
 
     Player:CreatePlayer()
@@ -171,8 +172,9 @@ function _M:Left()
     for y = 1, SB.row, 1 do
         for x = 2, SB.col, 1 do
             local item = SB.list[y][x]
-            -- print_t(item, "item")
+            
             if type(item.Left) == "function" then
+                print_t(item, "item")
                 self.isMove = item:Left()
             end
             

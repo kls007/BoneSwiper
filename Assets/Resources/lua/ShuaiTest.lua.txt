@@ -48,6 +48,7 @@ function _M.TestQ()
     local player = Player:RandomCreate()
     print_t(player, "player")
 
+
     -- instance.data =
     --     array.filter(
     --     SB.wuxingList,
@@ -66,6 +67,7 @@ function _M.TestE()
 
     local player = Player:CreatePlayer()
     print_t(player, "player")
+    local player = Player:CreatePlayer()
 
     -- GamePanel:InitData()
     -- print_t(GamePanel.cellWidth, "GamePanel.cellWidth")
@@ -100,7 +102,7 @@ end
 function _M.TestR()
     -- print_t("RRR", "ShuaiTest")
     -- TipManager.Show("TestR")
-    
+
     print_t(SB.list, "SB.list")
 
 
