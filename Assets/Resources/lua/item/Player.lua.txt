@@ -7,6 +7,10 @@ function Player:New(params)
     setmetatable(instance, self)
     self.__index = self
 
+    instance.x = params.x
+    instance.y = params.y
+    SB.list[instance.y][instance.x] = instance
+
     instance.id = params.id
     instance.data =
         array.filter(
@@ -16,14 +20,10 @@ function Player:New(params)
         end
     )[1]
 
-    instance.x = params.x
-    instance.y = params.y
-    -- instance.type = instance.data.type or "attack"
+    instance.type = instance.data.type or "attack"
     instance.attack = params.attack or 0 -- 攻击
     instance.defense = params.defense or 0 -- 防御
     instance.hp = params.hp or 0 -- 血量
-
-    SB.list[instance.y][instance.x] = instance
 
     instance:Create()
     instance:InitView()
@@ -86,8 +86,6 @@ function Player:RefreshUI()
     )
 end
 
-
-
 function Player:RandomCreate(direction)
     if Player:IsFull() then
         print("满了~~~")
@@ -108,15 +106,20 @@ function Player:RandomCreate(direction)
         randomCol = 1
     end
 
-    if next(SB.list[randomRow][randomCol]) == nil then
+    if SB.list[randomRow][randomCol] == nil then
         local params = {
             x = randomCol,
             y = randomRow,
             id = math.random(2, 5),
-            attack = ({2, 4})[math.random(1, 2)],
-            defense = ({2, 4})[math.random(1, 2)],
-            hp = ({2, 4})[math.random(1, 2)]
+            attack = 2, -- ({2, 4})[math.random(1, 2)],
+            defense = 2, -- ({2, 4})[math.random(1, 2)],
+            hp = 2 -- ({2, 4})[math.random(1, 2)]
         }
+        if params.id == 5 then -- 骷髅
+            params.attack = 1
+            params.defense = 0
+            params.hp = 10
+        end
         local item = Player:New(params)
 
         return item
@@ -134,7 +137,7 @@ function Player:CreatePlayer()
     local randomRow = math.random(1, SB.row)
     local randomCol = math.random(1, SB.col)
 
-    if next(SB.list[randomRow][randomCol]) == nil then
+    if SB.list[randomRow][randomCol] == nil then
         local params = {
             x = randomCol,
             y = randomRow,
@@ -151,28 +154,120 @@ function Player:CreatePlayer()
     end
 end
 
-function Player:Left()
-    local x = self.x
-    local y = self.y
-    local one = SB.list[y][x]
-    local two = SB.list[y][x - 1]
-    if next(one) ~= nil then
-        print_t(y, "y")
-        print_t(x, "x")
-        
-        if next(two) == nil then
-            SB.list[y][x] = {}
+function Player:Left(direction)
+    local x1 = self.x
+    local y1 = self.y
+    local x2 = self.x + direction.x
+    local y2 = self.y + direction.y
 
-            SB.list[y][x - 1] = one
-            SB.list[y][x - 1].x = x - 1
-            SB.list[y][x - 1].y = y
+    local one = SB.list[y1][x1]
+    local two = SB.list[y2][x2]
 
-            
-            -- SB.list[y][x]:RefreshPosition()
-            SB.list[y][x - 1]:RefreshPosition()
-            -- Player:RefreshPosition()
-            return true
+    if self ~= nil then -- 自己不是空
+        if two == nil then -- 下一个是空直接移动
+            SB.list[y1][x1] = nil
+
+            SB.list[y2][x2] = one
+            SB.list[y2][x2].x = x2
+            SB.list[y2][x2].y = y2
+        else -- 下一个不是空
+            if one.id == 1 then -- 玩家
+                if two.id == 2 or two.id == 3 or two.id == 4 then
+                    local itemTypeName = two.type
+                    local itemTypeValue = two[two.type]
+                    SB.list[y1][x1] = nil
+
+                    SB.list[y2][x2]:Destroy()
+                    SB.list[y2][x2] = one
+                    SB.list[y2][x2].x = x2
+                    SB.list[y2][x2].y = y2
+
+                    if itemTypeValue > SB.list[y2][x2][itemTypeName] then
+                        SB.list[y2][x2][itemTypeName] = itemTypeValue
+                    end
+                elseif two.id == 5 then
+                    Player:Attack(one, two)
+                end
+            elseif one.id == 5 then -- 骷髅
+                if two.id == 2 or two.id == 3 or two.id == 4 then
+                    local itemTypeName = two.type
+                    local itemTypeValue = two[two.type]
+                    SB.list[y1][x1] = nil
+
+                    SB.list[y2][x2]:Destroy()
+                    SB.list[y2][x2] = one
+                    SB.list[y2][x2].x = x2
+                    SB.list[y2][x2].y = y2
+
+                    if itemTypeValue > SB.list[y2][x2][itemTypeName] then
+                        SB.list[y2][x2][itemTypeName] = itemTypeValue
+                    end
+                elseif two.id == 1 then
+                    Player:Attack(one, two)
+                end
+            elseif one.id == 2 or one.id == 3 or one.id == 4 then
+                if one.id == two.id and one[one.type] == two[two.type] then
+                    local itemTypeName = one.type
+                    local itemTypeValue = one[one.type]
+                    SB.list[y1][x1] = nil
+
+                    SB.list[y2][x2]:Destroy()
+                    SB.list[y2][x2] = one
+                    SB.list[y2][x2].x = x2
+                    SB.list[y2][x2].y = y2
+                    SB.list[y2][x2][itemTypeName] = SB.list[y2][x2][itemTypeName] + itemTypeValue
+                end
+            end
         end
+
+        if SB.list[y2][x2] then
+            SB.list[y2][x2]:RefreshPosition()
+            SB.list[y2][x2]:RefreshUI()
+        end
+        if SB.list[y1][x1] then
+            SB.list[y1][x1]:RefreshPosition()
+            SB.list[y1][x1]:RefreshUI()
+        end
+    end
+end
+
+-- 攻击 one先攻击two 先后手 后攻击的死了就无法攻击先手 先手优势 直接杀死就免伤
+function Player:Attack(one, two)
+    two.hp = two.hp - one.attack
+    
+    one.attack = one.attack - 1
+    if one.attack < 1 then
+        one.attack = 1
+    end
+    
+    if two.hp <= 0 then
+        two:Destroy()
+        return
+    end
+    --
+    one.hp = one.hp - two.attack
+    
+    two.attack = two.attack - 1
+    if two.attack < 1 then
+        two.attack = 1
+    end
+
+    if one.hp <= 0 then
+        one:Destroy()
+    end
+end
+
+-- 销毁
+function Player:Destroy()
+    self.gameObject:SetActive(false)
+    SB.list[self.y][self.x] = nil
+    -- self = nil
+    if self.id == 1 then
+        print("游戏结束~~~")
+        print("游戏结束~~~")
+        print("游戏结束~~~")
+        print("游戏结束~~~")
+        print("游戏结束~~~")
     end
 end
 
@@ -188,7 +283,7 @@ end
 function Player:IsFull()
     for y = 1, SB.row, 1 do
         for x = 1, SB.col, 1 do
-            if next(SB.list[y][x]) == nil then
+            if SB.list[y][x] == nil then
                 return false
             end
         end

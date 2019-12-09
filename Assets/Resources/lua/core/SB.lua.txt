@@ -17,7 +17,7 @@ SB.list = {}
 for y = 1, SB.row, 1 do
     SB.list[y] = {}
     for x = 1, SB.col, 1 do
-        SB.list[y][x] = {}
+        SB.list[y][x] = nil -- {}
     end
 end
 

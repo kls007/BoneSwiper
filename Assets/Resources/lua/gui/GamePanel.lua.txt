@@ -173,9 +173,9 @@ function _M:Left()
         for x = 2, SB.col, 1 do
             local item = SB.list[y][x]
             
-            if type(item.Left) == "function" then
+            if type(item) == "table" and type(item.Left) == "function" then
                 print_t(item, "item")
-                self.isMove = item:Left()
+                self.isMove = item:Left({x = -1, y = 0})
             end
             
             -- if next(SB.list[y][j]) ~= nil then
@@ -211,113 +211,38 @@ end
 
 -- 右移
 function _M:Right()
-    self.isMove = false
-
-    for y = 1, GamePanel.row, 1 do
-        for j = GamePanel.col - 1, 1, -1 do
-            if next(GamePanel.list[y][j]) ~= nil then
-                -- 右边是空位就右移动
-                if next(GamePanel.list[y][j + 1]) == nil then
-                    -- 右边是相同元素就相加
-                    GamePanel.list[y][j + 1] = GamePanel.list[y][j]
-                    GamePanel.list[y][j] = {}
-                    self.isMove = true
-                else
-                    local newItem = Judge(GamePanel.list[y][j], GamePanel.list[y][j + 1])
-                    if newItem then
-                        GamePanel.list[y][j + 1] = newItem
-                        GamePanel.list[y][j] = {}
-                        self.isMove = true
-                    end
-                end
+    for y = 1, SB.row, 1 do
+        for x = SB.col - 1 , 1, -1 do
+            local item = SB.list[y][x]
+            if type(item) == "table" and type(item.Left) == "function" then
+                self.isMove = item:Left({x = 1, y = 0})
             end
         end
     end
-
-    self:Reset()
-    self:Refresh()
-
-    if self.isMove == true then
-        Player:RandomCreate({x = 1, y = 0})
-        self:NextState()
-        self:Refresh()
-    end
-
-    self:CheckIsGameOver()
 end
 
 -- 上移
 function _M:Up()
-    self.isMove = false
-
-    for x = 1, GamePanel.col, 1 do
-        for j = GamePanel.row - 1, 1, -1 do
-            if next(GamePanel.list[j][x]) ~= nil then
-                -- 上边是空位就向上移动
-                if next(GamePanel.list[j + 1][x]) == nil then
-                    -- 上边是相同元素就相加
-                    GamePanel.list[j + 1][x] = GamePanel.list[j][x]
-                    GamePanel.list[j][x] = {}
-                    self.isMove = true
-                else
-                    local newItem = Judge(GamePanel.list[j][x], GamePanel.list[j + 1][x])
-                    if newItem then
-                        GamePanel.list[j + 1][x] = newItem
-                        GamePanel.list[j][x] = {}
-                        self.isMove = true
-                    end
-                end
+    for x = 1, SB.col, 1 do
+        for y = SB.row - 1 , 1, -1 do
+            local item = SB.list[y][x]
+            if type(item) == "table" and type(item.Left) == "function" then
+                self.isMove = item:Left({x = 0, y = 1})
             end
         end
     end
-
-    self:Reset()
-    self:Refresh()
-
-    if self.isMove == true then
-        Player:RandomCreate({x = 0, y = 1})
-        self:NextState()
-        self:Refresh()
-    end
-
-    self:CheckIsGameOver()
 end
 
 -- 下移
 function _M:Down()
-    self.isMove = false
-
-    for x = 1, GamePanel.col, 1 do
-        for j = 2, GamePanel.row, 1 do
-            if next(GamePanel.list[j][x]) ~= nil then
-                -- 下边是空位就向上移动
-                if next(GamePanel.list[j - 1][x]) == nil then
-                    -- 下边是相同元素就相加
-                    GamePanel.list[j - 1][x] = GamePanel.list[j][x]
-                    GamePanel.list[j][x] = {}
-                    self.isMove = true
-                else
-                    local newItem = Judge(GamePanel.list[j][x], GamePanel.list[j - 1][x])
-                    if newItem then
-                        GamePanel.list[j - 1][x] = newItem
-                        GamePanel.list[j][x] = {}
-                        self.isMove = true
-                    end
-                end
+    for x = 1, SB.col, 1 do
+        for y = 2, SB.row, 1 do
+            local item = SB.list[y][x]
+            if type(item) == "table" and type(item.Left) == "function" then
+                self.isMove = item:Left({x = 0, y = -1})
             end
         end
     end
-
-    self:Reset()
-    self:Refresh()
-
-    if self.isMove == true then
-        Player:RandomCreate({x = 0, y = -1})
-        self:NextState()
-        self:Refresh()
-    end
-
-    self:CheckIsGameOver()
 end
 
 -- 检测是否游戏结束

@@ -34,17 +34,50 @@ function _M.TestQ()
 
     -- GameManager:StartGame()
 
-    -- local params =
-    -- {
-    --     x = 1, y = 1,
-    --     attack = 100,
-    --     defense = 200,
-    --     hp = 300,
-    -- }
-    -- local player = Player:New(params)
-    -- GamePanel.list[y][x] = player
 
-    -- print_t(SB.list, "SB.list")
+    
+    -- local params = {
+    --     x = 1,
+    --     y = 1,
+    --     id = 2,
+    --     attack = 100,
+    --     defense = 1,
+    --     hp = 1,
+    -- }
+    -- local item = Player:New(params)
+
+    -- local params = {
+    --     x = 1,
+    --     y = 1,
+    --     id = 3,
+    --     attack = 100,
+    --     defense = 1,
+    --     hp = 1,
+    -- }
+    -- local item = Player:New(params)
+
+    -- local params = {
+    --     x = 1,
+    --     y = 1,
+    --     id = 4,
+    --     attack = 100,
+    --     defense = 1,
+    --     hp = 1,
+    -- }
+    -- local item = Player:New(params)
+
+    -- local params = {
+    --     x = 2,
+    --     y = 1,
+    --     id = 1,
+    --     attack = 1,
+    --     defense = 1,
+    --     hp = 1,
+    -- }
+    -- local item = Player:New(params)
+
+
+
     local player = Player:RandomCreate()
     print_t(player, "player")
 
