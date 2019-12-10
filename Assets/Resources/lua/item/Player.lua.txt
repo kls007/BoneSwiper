@@ -86,31 +86,33 @@ function Player:RefreshUI()
     )
 end
 
-function Player:RandomCreate(direction)
+function Player:RandomCreate(pos)
     if Player:IsFull() then
         print("满了~~~")
+        GamePanel.currentState = -GamePanel.currentState/math.abs(GamePanel.currentState)
+        GamePanel:RefreshState()
         return
     end
 
-    local randomRow = math.random(1, SB.row)
-    local randomCol = math.random(1, SB.col)
+    pos = pos or {}
+    local randomRow = pos.y or math.random(1, SB.row)
+    local randomCol = pos.x or math.random(1, SB.col)
 
-    if direction == nil then
-    elseif direction.y == 1 and direction.x == 0 then -- 上
-        randomRow = 1
-    elseif direction.y == -1 and direction.x == 0 then -- 下
-        randomRow = self.row
-    elseif direction.y == 0 and direction.x == -1 then -- 左
-        randomCol = self.col
-    elseif direction.y == 0 and direction.x == 1 then -- 右
-        randomCol = 1
+    -- 刷新骷髅
+    local id = math.random(2, 4)
+    if GamePanel.totalStep >= 20 then
+        local point = math.random(1, 2)
+        if point > 1 then
+            id = 5
+            GamePanel.totalStep = 0
+        end
     end
 
     if SB.list[randomRow][randomCol] == nil then
         local params = {
             x = randomCol,
             y = randomRow,
-            id = math.random(2, 5),
+            id = id,
             attack = 2, -- ({2, 4})[math.random(1, 2)],
             defense = 2, -- ({2, 4})[math.random(1, 2)],
             hp = 2 -- ({2, 4})[math.random(1, 2)]
@@ -120,9 +122,18 @@ function Player:RandomCreate(direction)
             params.defense = 0
             params.hp = 10
         end
-        local item = Player:New(params)
 
-        return item
+        local SeqAction = Actions.New("Sequence"):setTarget("Player")
+        SeqAction:addDelay(0.1)
+        SeqAction:addAction(
+            function()
+                GamePanel:NextState()
+                return Player:New(params)
+            end
+        )
+        Actions:play(SeqAction)
+
+        
     else
         return self:RandomCreate()
     end
@@ -154,7 +165,7 @@ function Player:CreatePlayer()
     end
 end
 
-function Player:Left(direction)
+function Player:Move(direction)
     local x1 = self.x
     local y1 = self.y
     local x2 = self.x + direction.x
@@ -171,7 +182,7 @@ function Player:Left(direction)
             SB.list[y2][x2].x = x2
             SB.list[y2][x2].y = y2
         else -- 下一个不是空
-            if one.id == 1 then -- 玩家
+            if one.id == 1 and GamePanel.currentState < 0 then -- 玩家
                 if two.id == 2 or two.id == 3 or two.id == 4 then
                     local itemTypeName = two.type
                     local itemTypeValue = two[two.type]
@@ -186,9 +197,9 @@ function Player:Left(direction)
                         SB.list[y2][x2][itemTypeName] = itemTypeValue
                     end
                 elseif two.id == 5 then
-                    Player:Attack(one, two)
+                    Player:Battle(one, two)
                 end
-            elseif one.id == 5 then -- 骷髅
+            elseif one.id == 5 and GamePanel.currentState < 0 then -- 骷髅
                 if two.id == 2 or two.id == 3 or two.id == 4 then
                     local itemTypeName = two.type
                     local itemTypeValue = two[two.type]
@@ -203,7 +214,7 @@ function Player:Left(direction)
                         SB.list[y2][x2][itemTypeName] = itemTypeValue
                     end
                 elseif two.id == 1 then
-                    Player:Attack(one, two)
+                    Player:Battle(one, two)
                 end
             elseif one.id == 2 or one.id == 3 or one.id == 4 then
                 if one.id == two.id and one[one.type] == two[two.type] then
@@ -232,28 +243,32 @@ function Player:Left(direction)
 end
 
 -- 攻击 one先攻击two 先后手 后攻击的死了就无法攻击先手 先手优势 直接杀死就免伤
+function Player:Battle(one, two)
+    Player:Attack(one, two)
+    Player:Attack(two, one)
+end
+
+-- 攻击 one先攻击two 先后手 后攻击的死了就无法攻击先手 先手优势 直接杀死就免伤
 function Player:Attack(one, two)
-    two.hp = two.hp - one.attack
-    
-    one.attack = one.attack - 1
+    if one.hp <= 0 or two.hp <= 0 then
+        return
+    end
+
+    local leftDefense = two.defense - one.attack -- 攻击对防御
+    one.attack = one.attack - 1 - two.defense -- 攻击者损耗武器耐久 至少扣一点，最低扣到1，防御者每有一点防御多扣一点耐久
     if one.attack < 1 then
         one.attack = 1
     end
-    
+
+    two.defense = leftDefense
+    if leftDefense < 0 then
+        two.defense = 0
+        two.hp = two.hp - math.abs(leftDefense)
+    end
+
     if two.hp <= 0 then
         two:Destroy()
         return
-    end
-    --
-    one.hp = one.hp - two.attack
-    
-    two.attack = two.attack - 1
-    if two.attack < 1 then
-        two.attack = 1
-    end
-
-    if one.hp <= 0 then
-        one:Destroy()
     end
 end
 

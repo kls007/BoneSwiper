@@ -12,20 +12,27 @@ function _M:InitView()
     self.transform = self.gameObject.transform
     local transform = self.transform
 
-    self.ui = self.transform:Find("$ui")
-    self.Button_Button_back = self.transform:Find("$Button_back"):GetComponent("Button")
-    self.Image_Button_back = self.transform:Find("$Button_back"):GetComponent("Image")
-    self.Text_score = self.transform:Find("$score"):GetComponent("Text")
-    self.Text_currentState = self.transform:Find("$currentState"):GetComponent("Text")
-    self.game = self.transform:Find("$game")
-    self.Image_item = self.transform:Find("$game/$item"):GetComponent("Image")
-    self.Text_Text_name = self.transform:Find("$game/$item/$Text_name"):GetComponent("Text")
-    self.Text_Text_attack = self.transform:Find("$game/$item/$Text_attack"):GetComponent("Text")
-    self.Text_Text_defense = self.transform:Find("$game/$item/$Text_defense"):GetComponent("Text")
-    self.Text_Text_hp = self.transform:Find("$game/$item/$Text_hp"):GetComponent("Text")
-    self.ResultPanel = self.transform:Find("$ResultPanel")
-    self.Button_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Button")
-    self.Image_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Image")
+    
+    self.ui = self.transform:Find("$ui");
+    self.Button_Button_back = self.transform:Find("$Button_back"):GetComponent("Button");
+    self.Image_Button_back = self.transform:Find("$Button_back"):GetComponent("Image");
+    self.Text_score = self.transform:Find("$score"):GetComponent("Text");
+    self.Text_currentState = self.transform:Find("$currentState"):GetComponent("Text");
+    self.game = self.transform:Find("$game");
+    self.Image_item = self.transform:Find("$game/$item"):GetComponent("Image");
+    self.Text_Text_name = self.transform:Find("$game/$item/$Text_name"):GetComponent("Text");
+    self.Text_Text_attack = self.transform:Find("$game/$item/$Text_attack"):GetComponent("Text");
+    self.Text_Text_defense = self.transform:Find("$game/$item/$Text_defense"):GetComponent("Text");
+    self.Text_Text_hp = self.transform:Find("$game/$item/$Text_hp"):GetComponent("Text");
+    self.ResultPanel = self.transform:Find("$ResultPanel");
+    self.Button_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Button");
+    self.Image_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Image");
+    self.Slider_taskTime = self.transform:Find("$Slider_taskTime"):GetComponent("Slider");
+    self.Image_Background_Slider_taskTime = self.transform:Find("$Slider_taskTime/$Background_Slider_taskTime"):GetComponent("Image");
+    self.Image_Fill_Slider_taskTime = self.transform:Find("$Slider_taskTime/Fill Area/$Fill_Slider_taskTime"):GetComponent("Image");
+    self.Text_Text_taskTime = self.transform:Find("$Slider_taskTime/$Text_taskTime"):GetComponent("Text");
+    
+    
 end
 
 function _M:Open()
@@ -56,29 +63,6 @@ function _M:AddListener()
     end
 end
 
-function _M:RefreshState()
-    if self.currentState > 0 then
-        self.Text_currentState.text = "白天" .. math.abs(self.currentState)
-    else
-        self.Text_currentState.text = "黑夜" .. math.abs(self.currentState)
-    end
-end
-
-function _M:NextState()
-    if self.currentState > 0 then
-        self.currentState = self.currentState + 1
-        if self.currentState > 10 then
-            self.currentState = -1
-        end
-    else
-        self.currentState = self.currentState - 1
-        if self.currentState < -10 then
-            self.currentState = 1
-        end
-    end
-    _M:RefreshState()
-end
-
 function _M:Clear()
     functions.SetActiveAllChildren(self.parent, false)
 end
@@ -94,10 +78,11 @@ function _M:Start()
 
     Player:CreatePlayer()
 
+    self.totalStep = 0
     self.currentState = 1
-    
-    -- self:Refresh()
-    -- self:RefreshState()
+    self.totalNumbers = 20
+
+    self:RefreshState()
 
     self.isMove = false
     self.score = 0
@@ -106,131 +91,43 @@ function _M:Start()
     self.ResultPanel.gameObject:SetActive(false)
 end
 
-function _M:Refresh()
-    -- functions.SetActiveAllChildren(self.parent, false)
-
-    -- for y = 1, self.row, 1 do
-    --     for x = 1, self.col, 1 do
-    --         if next(self.list[y][x]) ~= nil then
-    --             local gameObject = functions.GetGo(self.parent, self.prefab)
-    --             gameObject.transform.localPosition = UnityEngine.Vector3(x * self.width - 375, y * self.width - 375, 0)
-    --             local Text_Text_name = gameObject.transform:Find("$Text_name"):GetComponent("Text")
-    --             local Text_Text_attack = gameObject.transform:Find("$Text_attack"):GetComponent("Text")
-    --             local Text_Text_defense = gameObject.transform:Find("$Text_defense"):GetComponent("Text")
-    --             local Text_Text_hp = gameObject.transform:Find("$Text_hp"):GetComponent("Text")
-
-    --             Text_Text_name.text = GetName(self.list[y][x]) -- self.list[y][x].id --
-
-    --             Text_Text_attack.gameObject:SetActive(false)
-    --             Text_Text_defense.gameObject:SetActive(false)
-    --             Text_Text_hp.gameObject:SetActive(false)
-    --             if self.list[y][x].id == 2 then
-    --                 Text_Text_attack.gameObject:SetActive(true)
-    --                 Text_Text_attack.text = 100
-    --             end
-
-    --             local id = self.list[y][x].id
-    --             Text_Text_attack.gameObject:SetActive(id == 2 or id == 1 or id == 5)
-    --             Text_Text_defense.gameObject:SetActive(id == 3 or id == 1 or id == 5)
-    --             Text_Text_hp.gameObject:SetActive(id == 4 or id == 1 or id == 5)
-
-    --             Text_Text_attack.text = self.list[y][x].attack
-    --             Text_Text_defense.text = self.list[y][x].defense
-    --             Text_Text_hp.text = self.list[y][x].hp
-
-    --             local items =
-    --                 array.filter(
-    --                 SB.wuxingList,
-    --                 function(value)
-    --                     return value.id == self.list[y][x].id
-    --                 end
-    --             )
-    --             local color = items[1].color
-    --             local Image = gameObject:GetComponent("Image")
-    --             Image.color = Color.HexToRGBA(color) -- self.list[y][x][1].color
-
-    --         -- Text_name.color = Color.HexToRGBA(color)
-    --         end
-    --     end
-    -- end
-end
-
-function _M:Reset()
-    for y = 1, SB.row, 1 do
-        for x = 1, SB.col, 1 do
-            if SB.list[y][x].id then
-                SB.list[y][x].id = math.abs(SB.list[y][x].id)
-            end
-        end
-    end
-end
-
 -- 左移
 function _M:Left()
-    self.isMove = false
-
     for y = 1, SB.row, 1 do
         for x = 2, SB.col, 1 do
             local item = SB.list[y][x]
-            
-            if type(item) == "table" and type(item.Left) == "function" then
-                print_t(item, "item")
-                self.isMove = item:Left({x = -1, y = 0})
+            if type(item) == "table" and type(item.Move) == "function" then
+                self.isMove = item:Move({x = -1, y = 0})
             end
-            
-            -- if next(SB.list[y][j]) ~= nil then
-            --     -- 左边是空位就右移动
-            --     if next(SB.list[y][j - 1]) == nil then
-            --         -- 左边是相同元素就相加
-            --         SB.list[y][j - 1] = SB.list[y][j]
-            --         SB.list[y][j] = {}
-            --         self.isMove = true
-            --     else
-            --         local newItem = Judge(SB.list[y][j], SB.list[y][j - 1])
-            --         if newItem then
-            --             SB.list[y][j - 1] = newItem
-            --             SB.list[y][j] = {}
-            --             self.isMove = true
-            --         end
-            --     end
-            -- end
         end
     end
-
-    -- self:Reset()
-    -- self:Refresh()
-
-    -- if self.isMove == true then
-    --     Player:RandomCreate({x = -1, y = 0})
-    --     self:NextState()
-    --     self:Refresh()
-    -- end
-
-    -- self:CheckIsGameOver()
+    Player:RandomCreate({x = SB.col, time = 0.4})
 end
 
 -- 右移
 function _M:Right()
     for y = 1, SB.row, 1 do
-        for x = SB.col - 1 , 1, -1 do
+        for x = SB.col - 1, 1, -1 do
             local item = SB.list[y][x]
-            if type(item) == "table" and type(item.Left) == "function" then
-                self.isMove = item:Left({x = 1, y = 0})
+            if type(item) == "table" and type(item.Move) == "function" then
+                self.isMove = item:Move({x = 1, y = 0})
             end
         end
     end
+    Player:RandomCreate({x = 1, time = 0.4})
 end
 
 -- 上移
 function _M:Up()
     for x = 1, SB.col, 1 do
-        for y = SB.row - 1 , 1, -1 do
+        for y = SB.row - 1, 1, -1 do
             local item = SB.list[y][x]
-            if type(item) == "table" and type(item.Left) == "function" then
-                self.isMove = item:Left({x = 0, y = 1})
+            if type(item) == "table" and type(item.Move) == "function" then
+                self.isMove = item:Move({x = 0, y = 1})
             end
         end
     end
+    Player:RandomCreate({y = 1, time = 0.4})
 end
 
 -- 下移
@@ -238,11 +135,12 @@ function _M:Down()
     for x = 1, SB.col, 1 do
         for y = 2, SB.row, 1 do
             local item = SB.list[y][x]
-            if type(item) == "table" and type(item.Left) == "function" then
-                self.isMove = item:Left({x = 0, y = -1})
+            if type(item) == "table" and type(item.Move) == "function" then
+                self.isMove = item:Move({x = 0, y = -1})
             end
         end
     end
+    Player:RandomCreate({y = SB.row, time = 0.4})
 end
 
 -- 检测是否游戏结束
@@ -250,84 +148,42 @@ function _M:CheckIsGameOver()
     do
         return
     end
-
-    for y = 1, self.row, 1 do
-        for x = 1, self.col, 1 do
-            local isTrue = functions.IsContainTable(SB.cookbook[1], self.list[y][x])
-            print_t(isTrue, "IsContainTable")
-            if isTrue then
-                print_t(isTrue, "NBNBNBNBNBNBNBNBNBNBNBNBNBNB")
-            end
-        end
-    end
-
-    do
-        return
-    end
-
-    local number = 0
-    for y = 1, self.row, 1 do
-        for x = 1, self.col, 1 do
-            if self.list[y][x] ~= 0 then
-                number = number + 1
-            end
-        end
-    end
-    if number == self.row * self.col then
-        local isCanMove = false
-
-        -- 上移检测
-        for x = 1, GamePanel.col, 1 do
-            for y = GamePanel.row, 1, -1 do
-                if GamePanel.list[y][x] ~= 0 then
-                    for j = y, GamePanel.row - 1, 1 do
-                        -- 上边是空位就向上移动
-                        if GamePanel.list[j + 1][x] == 0 then
-                            -- 上边是相同元素就相加
-                            isCanMove = true
-                        elseif
-                            GamePanel.list[j + 1][x] and GamePanel.list[j + 1][x] > 0 and GamePanel.list[j][x] and
-                                GamePanel.list[j][x] > 0 and
-                                GamePanel.list[j + 1][x] == GamePanel.list[j][x]
-                         then
-                            isCanMove = true
-                        end
-                    end
-                end
-            end
-        end
-
-        -- 右移检测
-        for y = 1, GamePanel.row, 1 do
-            for x = GamePanel.col, 1, -1 do
-                if GamePanel.list[y][x] ~= 0 then
-                    for j = x, GamePanel.col, 1 do
-                        -- 右边是空位就右移动
-                        if GamePanel.list[y][j + 1] == 0 then
-                            -- 右边是相同元素就相加
-                            isCanMove = true
-                        elseif
-                            GamePanel.list[y][j + 1] and GamePanel.list[y][j + 1] > 0 and GamePanel.list[y][j] and
-                                GamePanel.list[y][j] > 0 and
-                                GamePanel.list[y][j + 1] == GamePanel.list[y][j]
-                         then
-                            isCanMove = true
-                        end
-                    end
-                end
-            end
-        end
-
-        if isCanMove ~= true then
-            print_t("游戏结束~~~")
-            self.ResultPanel.gameObject:SetActive(true)
-        end
-    end
 end
 
 function _M:Score(number)
     self.score = self.score + number
     self.Text_score.text = "当前得分: " .. self.score
+end
+
+function _M:RefreshState()
+    if self.currentState > 0 then
+        self.Text_currentState.text = math.abs(self.currentState)
+        self.Slider_taskTime.value = math.abs(self.currentState / self.totalNumbers)
+        self.Image_Background_Slider_taskTime.color = Color.HexToRGBA("FFFFFF")
+        self.Image_Fill_Slider_taskTime.color = Color.HexToRGBA("FFFFFF")
+    else
+        self.Text_currentState.text = math.abs(self.currentState)
+        GamePanel.Slider_taskTime.value = math.abs(self.currentState / self.totalNumbers)
+        self.Image_Background_Slider_taskTime.color = Color.HexToRGBA("FF0000")
+        self.Image_Fill_Slider_taskTime.color = Color.HexToRGBA("FF0000")
+    end
+end
+
+-- 10步杀一人
+function _M:NextState()
+    self.totalStep = self.totalStep + 1
+    if self.currentState > 0 then
+        self.currentState = self.currentState + 1
+        if self.currentState > self.totalNumbers then
+            self.currentState = -1
+        end
+    else
+        self.currentState = self.currentState - 1
+        if self.currentState < -self.totalNumbers then
+            self.currentState = 1
+        end
+    end
+    _M:RefreshState()
 end
 
 _M:__init__()
