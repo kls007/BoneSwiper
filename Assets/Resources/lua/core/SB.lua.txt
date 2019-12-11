@@ -11,7 +11,7 @@ SB.score = 0
 
 SB.row = 4 -- 行
 SB.col = 4 -- 列
-SB.space = 10 -- 空格
+SB.space = 0 -- 空格
 
 SB.list = {}
 for y = 1, SB.row, 1 do
@@ -23,22 +23,24 @@ end
 
 -- SB.wuxingList = 
 -- {
---     {id = 1, name = "金", add = 3, state = 1, number = 1, color = "f1f1b8", icon = "sprite/food/Tomato_Icon"},
---     {id = 2, name = "木", add = 4, state = 1, number = 1, color = "b7d28d", icon = "sprite/food/Tomato_Icon"},
---     {id = 3, name = "水", add = 2, state = 1, number = 1, color = "b8f1ed", icon = "sprite/food/Lettuce_Icon"},
---     {id = 4, name = "火", add = 5, state = 1, number = 1, color = "e27386", icon = "sprite/food/Tomato_Icon"},
---     {id = 5, name = "土", add = 1, state = 1, number = 1, color = "c17e61", icon = "sprite/caidao"},
+--     {id = 1, name = "我", add = 3, type = "player", number = 2, color = "f2debd", icon = "sprite/food/Tomato_Icon"},
+--     {id = 2, name = "刀", add = 4, type = "attack", number = 2, color = "b8f1ed", icon = "sprite/food/Tomato_Icon"},
+--     {id = 3, name = "盾", add = 2, type = "defense", number = 2, color = "f1f1b8", icon = "sprite/food/Lettuce_Icon"},
+--     {id = 4, name = "血", add = 5, type = "hp", number = 2, color = "b8f1cc", icon = "sprite/food/Tomato_Icon"},
+--     {id = 5, name = "骷髅", add = 1, type = "enemy", number = 2, color = "f16d7a", icon = "sprite/caidao"},
 -- }
 
 SB.wuxingList = 
 {
-    {id = 1, name = "我", add = 3, type = "player", number = 2, color = "f2debd", icon = "sprite/food/Tomato_Icon"},
-    {id = 2, name = "刀", add = 4, type = "attack", number = 2, color = "b8f1ed", icon = "sprite/food/Tomato_Icon"},
-    {id = 3, name = "盾", add = 2, type = "defense", number = 2, color = "f1f1b8", icon = "sprite/food/Lettuce_Icon"},
-    {id = 4, name = "血", add = 5, type = "hp", number = 2, color = "b8f1cc", icon = "sprite/food/Tomato_Icon"},
-    {id = 5, name = "骷髅", add = 1, type = "enemy", number = 2, color = "f16d7a", icon = "sprite/caidao"},
-
+    {id = 1, name = "我", add = 3, type = "player", number = 2, color = "FFFFFF", icon = "sprite/food/Tomato_Icon"},
+    {id = 2, name = "刀", add = 4, type = "attack", number = 2, color = "286975", icon = "sprite/food/Tomato_Icon"},
+    {id = 3, name = "盾", add = 2, type = "defense", number = 2, color = "EAC5AF", icon = "sprite/food/Lettuce_Icon"},
+    {id = 4, name = "血", add = 5, type = "hp", number = 2, color = "B9D6C9", icon = "sprite/food/Tomato_Icon"},
+    {id = 5, name = "骷髅", add = 1, type = "enemy", number = 2, color = "E25C47", icon = "sprite/caidao"},
 }
+
+
+
 
 
 -- 199 浅灰

@@ -33,8 +33,11 @@ function _M:InitView()
     self.Image_Fill_Slider_taskTime =
         self.transform:Find("$Slider_taskTime/Fill Area/$Fill_Slider_taskTime"):GetComponent("Image")
     self.Text_Text_taskTime = self.transform:Find("$Slider_taskTime/$Text_taskTime"):GetComponent("Text")
-    self.Image_day_night = self.transform:Find("$day_night"):GetComponent("Image")
-    self.Text_Text_day_night = self.transform:Find("$day_night/image/image/$Text_day_night"):GetComponent("Text")
+    self.day_night = self.transform:Find("$day_night")
+    self.Image_Image_day = self.transform:Find("$day_night/$Image_day"):GetComponent("Image")
+    self.Image_Image_night = self.transform:Find("$day_night/$Image_night"):GetComponent("Image")
+    self.Text_Text_day_night = self.transform:Find("$day_night/$Text_day_night"):GetComponent("Text")
+
     --
 end
 
@@ -90,14 +93,16 @@ function _M:Start()
     self.isMove = false
     self.score = 0
 
-    
     self:InitUI()
 end
 
 -- 刷新UI
 function _M:InitUI()
     self.ResultPanel.gameObject:SetActive(false)
-    self.Image_day_night.gameObject:SetActive(false)
+    
+    self.day_night.gameObject:SetActive(false)
+    -- self.Image_Image_day
+    -- self.Image_Image_night 
 end
 
 -- 左移

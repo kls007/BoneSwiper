@@ -56,7 +56,14 @@ end
 
 -- 初始化UI
 function Player:InitView()
+    -- self.Image_item = self.transform:Find(""):GetComponent("Image")
+    -- self.Text_Text_name = self.transform:Find("$Text_name"):GetComponent("Text")
+    -- self.Text_Text_attack = self.transform:Find("$Text_attack"):GetComponent("Text")
+    -- self.Text_Text_defense = self.transform:Find("$Text_defense"):GetComponent("Text")
+    -- self.Text_Text_hp = self.transform:Find("$Text_hp"):GetComponent("Text")
+
     self.Image_item = self.transform:Find(""):GetComponent("Image")
+    self.Image_Image_name = self.transform:Find("$Image_name"):GetComponent("Image")
     self.Text_Text_name = self.transform:Find("$Text_name"):GetComponent("Text")
     self.Text_Text_attack = self.transform:Find("$Text_attack"):GetComponent("Text")
     self.Text_Text_defense = self.transform:Find("$Text_defense"):GetComponent("Text")
@@ -68,12 +75,14 @@ end
 -- 刷新
 function Player:RefreshUI()
     self.Text_Text_name.text = self.data.name
+    self.Image_Image_name.sprite = res.item["Image_item_" .. self.data.type].sprite
     self.Text_Text_attack.text = self.attack
     self.Text_Text_defense.text = self.defense
     self.Text_Text_hp.text = self.hp
 
     self.Text_Text_name.color = Color.HexToRGBA(self.data.color)
-    self.Image_item.color = Color.HexToRGBA(self.data.color)
+    -- self.Image_item.color = Color.HexToRGBA(self.data.color)
+    self.Image_item.sprite = res.grid["Image_grid_" .. self.data.type].sprite
 
     self.Text_Text_attack.gameObject:SetActive(
         self.data.type == "attack" or self.data.type == "player" or self.data.type == "enemy"
@@ -89,7 +98,7 @@ end
 function Player:RandomCreate(pos)
     if Player:IsFull() then
         print("满了~~~")
-        GamePanel.currentState = -GamePanel.currentState/math.abs(GamePanel.currentState)
+        GamePanel.currentState = -GamePanel.currentState / math.abs(GamePanel.currentState)
         GamePanel:RefreshState()
         return
     end
@@ -132,8 +141,6 @@ function Player:RandomCreate(pos)
             end
         )
         Actions:play(SeqAction)
-
-        
     else
         return self:RandomCreate()
     end
