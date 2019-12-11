@@ -12,27 +12,30 @@ function _M:InitView()
     self.transform = self.gameObject.transform
     local transform = self.transform
 
-    
-    self.ui = self.transform:Find("$ui");
-    self.Button_Button_back = self.transform:Find("$Button_back"):GetComponent("Button");
-    self.Image_Button_back = self.transform:Find("$Button_back"):GetComponent("Image");
-    self.Text_score = self.transform:Find("$score"):GetComponent("Text");
-    self.Text_currentState = self.transform:Find("$currentState"):GetComponent("Text");
-    self.game = self.transform:Find("$game");
-    self.Image_item = self.transform:Find("$game/$item"):GetComponent("Image");
-    self.Text_Text_name = self.transform:Find("$game/$item/$Text_name"):GetComponent("Text");
-    self.Text_Text_attack = self.transform:Find("$game/$item/$Text_attack"):GetComponent("Text");
-    self.Text_Text_defense = self.transform:Find("$game/$item/$Text_defense"):GetComponent("Text");
-    self.Text_Text_hp = self.transform:Find("$game/$item/$Text_hp"):GetComponent("Text");
-    self.ResultPanel = self.transform:Find("$ResultPanel");
-    self.Button_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Button");
-    self.Image_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Image");
-    self.Slider_taskTime = self.transform:Find("$Slider_taskTime"):GetComponent("Slider");
-    self.Image_Background_Slider_taskTime = self.transform:Find("$Slider_taskTime/$Background_Slider_taskTime"):GetComponent("Image");
-    self.Image_Fill_Slider_taskTime = self.transform:Find("$Slider_taskTime/Fill Area/$Fill_Slider_taskTime"):GetComponent("Image");
-    self.Text_Text_taskTime = self.transform:Find("$Slider_taskTime/$Text_taskTime"):GetComponent("Text");
-    
-    
+    --
+    self.ui = self.transform:Find("$ui")
+    self.Button_Button_back = self.transform:Find("$Button_back"):GetComponent("Button")
+    self.Image_Button_back = self.transform:Find("$Button_back"):GetComponent("Image")
+    self.Text_score = self.transform:Find("$score"):GetComponent("Text")
+    self.Text_currentState = self.transform:Find("$currentState"):GetComponent("Text")
+    self.game = self.transform:Find("$game")
+    self.Image_item = self.transform:Find("$game/$item"):GetComponent("Image")
+    self.Text_Text_name = self.transform:Find("$game/$item/$Text_name"):GetComponent("Text")
+    self.Text_Text_attack = self.transform:Find("$game/$item/$Text_attack"):GetComponent("Text")
+    self.Text_Text_defense = self.transform:Find("$game/$item/$Text_defense"):GetComponent("Text")
+    self.Text_Text_hp = self.transform:Find("$game/$item/$Text_hp"):GetComponent("Text")
+    self.ResultPanel = self.transform:Find("$ResultPanel")
+    self.Button_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Button")
+    self.Image_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Image")
+    self.Slider_taskTime = self.transform:Find("$Slider_taskTime"):GetComponent("Slider")
+    self.Image_Background_Slider_taskTime =
+        self.transform:Find("$Slider_taskTime/$Background_Slider_taskTime"):GetComponent("Image")
+    self.Image_Fill_Slider_taskTime =
+        self.transform:Find("$Slider_taskTime/Fill Area/$Fill_Slider_taskTime"):GetComponent("Image")
+    self.Text_Text_taskTime = self.transform:Find("$Slider_taskTime/$Text_taskTime"):GetComponent("Text")
+    self.Image_day_night = self.transform:Find("$day_night"):GetComponent("Image")
+    self.Text_Text_day_night = self.transform:Find("$day_night/image/image/$Text_day_night"):GetComponent("Text")
+    --
 end
 
 function _M:Open()
@@ -80,15 +83,21 @@ function _M:Start()
 
     self.totalStep = 0
     self.currentState = 1
-    self.totalNumbers = 20
+    self.totalNumbers = 3
 
     self:RefreshState()
 
     self.isMove = false
     self.score = 0
-    self.Text_score.text = "当前得分: " .. self.score
 
+    
+    self:InitUI()
+end
+
+-- 刷新UI
+function _M:InitUI()
     self.ResultPanel.gameObject:SetActive(false)
+    self.Image_day_night.gameObject:SetActive(false)
 end
 
 -- 左移
