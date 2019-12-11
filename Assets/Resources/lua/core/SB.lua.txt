@@ -21,6 +21,9 @@ for y = 1, SB.row, 1 do
     end
 end
 
+SB.state = 1 -- 大于0为开
+SB.totalStep = 0 -- 总步数
+
 -- SB.wuxingList = 
 -- {
 --     {id = 1, name = "我", add = 3, type = "player", number = 2, color = "f2debd", icon = "sprite/food/Tomato_Icon"},

@@ -98,31 +98,29 @@ function _M.TestE()
     -- local gameObject = functions.GetGo(GamePanel.parent, GamePanel.prefab)
     -- print_t(gameObject, "gameObject")
 
-    local player = Player:CreatePlayer()
-    print_t(player, "player")
-    local player = Player:CreatePlayer()
+    -- local player = Player:CreatePlayer()
+    -- print_t(player, "player")
+    -- local player = Player:CreatePlayer()
 
-    -- GamePanel:InitData()
-    -- print_t(GamePanel.cellWidth, "GamePanel.cellWidth")
+    -- -- GamePanel:InitData()
+    -- -- print_t(GamePanel.cellWidth, "GamePanel.cellWidth")
 
-    do
-        return
-    end
+   
 
-    -- local SeqAction = Actions.New("Sequence"):setTarget("Test")
-    -- SeqAction:addAction(
+    -- -- local SeqAction = Actions.New("Sequence"):setTarget("Test")
+    -- -- SeqAction:addAction(
+    -- --     function()
+    -- local go = functions.GetGo(GamePanel.parent, GamePanel.prefab)
+    -- local x = 1200
+    -- local action =
+    --     Actions.New("Move", go.transform, 0.3, UnityEngine.Vector3(100, x, 0), UnityEngine.Vector3(600, x, 0)):setTarget(
+    --     "Test"
+    -- )
+    -- action:setComplete(
     --     function()
-    local go = functions.GetGo(GamePanel.parent, GamePanel.prefab)
-    local x = 1200
-    local action =
-        Actions.New("Move", go.transform, 0.3, UnityEngine.Vector3(100, x, 0), UnityEngine.Vector3(600, x, 0)):setTarget(
-        "Test"
-    )
-    action:setComplete(
-        function()
-        end
-    )
-    Actions:play(action)
+    --     end
+    -- )
+    -- Actions:play(action)
 
     -- end
     -- )
@@ -130,6 +128,8 @@ function _M.TestE()
     -- Actions:play(SeqAction)
 
     -- print_t(GamePanel.list, "GamePanel.list")
+    GamePanel:RefreshDayNight(1)
+
 end
 
 function _M.TestR()
@@ -140,10 +140,7 @@ function _M.TestR()
 
     -- print_t(GamePanel.Slider_taskTime.value, "GamePanel.Slider_taskTime")
 
-    local a = 8
-    print(a)
-    print(a/a)
-    print(-a/math.abs(a))
+    GamePanel:RefreshDayNight(-1)
 end
 
 function _M.TestW()

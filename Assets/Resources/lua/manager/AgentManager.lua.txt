@@ -49,15 +49,15 @@ end
 function _M.CsCallLua_Move(keyCode)
     -- print_t(keyCode, "keyCode")
 
-    if keyCode == "up" then
-        GamePanel:Up()
-    elseif keyCode == "down" then
-        GamePanel:Down()
-    elseif keyCode == "left" then
-        GamePanel:Left()
-    elseif keyCode == "right" then
-        GamePanel:Right()
-    end
+    local map =
+    {
+        up = {x = 0, y = 1},
+        down = {x = 0, y = -1},
+        left = {x = -1, y = 0},
+        right = {x = 1, y = 0},
+    }
+    local direction = map[keyCode]
+    GamePanel:Move(direction)
 end
 
 _M.__init__()
