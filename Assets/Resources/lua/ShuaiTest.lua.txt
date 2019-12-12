@@ -74,10 +74,12 @@ function _M.TestQ()
     -- }
     -- local item = Player:New(params)
 
-    local player = Player:RandomCreate()
-    print_t(player, "player")
+    -- local player = Player:RandomCreate()
+    -- print_t(player, "player")
 
+    
 
+    print_t(GamePanel:IsDayCanMove(), "白天是否可以移动~")
 
     -- local SeqAction = Actions.New("Sequence"):setTarget("test")
     --     SeqAction:addDelay(0.4)
@@ -139,6 +141,8 @@ function _M.TestR()
     -- print_t(SB.list, "SB.list")
 
     -- print_t(GamePanel.Slider_taskTime.value, "GamePanel.Slider_taskTime")
+
+    
 
     GamePanel:RefreshDayNight(-1)
 end

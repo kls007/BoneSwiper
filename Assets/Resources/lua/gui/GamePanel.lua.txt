@@ -13,14 +13,15 @@ function _M:InitView()
     local transform = self.transform
 
     --
-
     self.Image_bg = self.transform:Find("$bg"):GetComponent("Image")
     self.Button_Button_back = self.transform:Find("$Button_back"):GetComponent("Button")
     self.Image_Button_back = self.transform:Find("$Button_back"):GetComponent("Image")
     self.Text_score = self.transform:Find("$score"):GetComponent("Text")
     self.Text_currentState = self.transform:Find("$currentState"):GetComponent("Text")
+    self.Text_Text_killNumber = self.transform:Find("game_bg/killNumber/$Text_killNumber"):GetComponent("Text")
     self.game = self.transform:Find("$game")
     self.Image_item = self.transform:Find("$game/$item"):GetComponent("Image")
+    self.Image_Image_sleep = self.transform:Find("$game/$item/$Image_sleep"):GetComponent("Image")
     self.Image_Image_name = self.transform:Find("$game/$item/$Image_name"):GetComponent("Image")
     self.Text_Text_name = self.transform:Find("$game/$item/$Text_name"):GetComponent("Text")
     self.Text_Text_attack = self.transform:Find("$game/$item/$Text_attack"):GetComponent("Text")
@@ -71,7 +72,6 @@ function _M:AddListener()
     end
 
     UnityEngine.EventTriggerListener.Get(self.Image_day_night.gameObject, nil).onClick = function()
-        print(123)
         SB.state = 1
         self.Image_day_night.gameObject:SetActive(false)
     end
@@ -79,6 +79,7 @@ end
 
 function _M:Clear()
     functions.SetActiveAllChildren(self.parent, false)
+    SB:InitList()
 end
 
 function _M:InitData()
@@ -86,16 +87,16 @@ function _M:InitData()
     GamePanel.prefab = self.parent.transform:GetChild(0).gameObject
 end
 
+function _M:GameOver()
+    self.ResultPanel.gameObject:SetActive(true)
+end
+
 function _M:Start()
-    print_t("GamePanel:Start()")
     self:Clear()
 
-    Player:CreatePlayer()
+    SB:InitData()
 
-    SB.state = 1
-    SB.totalStep = 0
-    self.currentState = 1
-    self.totalNumbers = 3
+    Player:CreatePlayer()
 
     self:RefreshState()
 
@@ -112,6 +113,48 @@ function _M:InitUI()
     self.Image_day_night.gameObject:SetActive(false)
 end
 
+-- 白天是否不能移动了
+function _M:IsDayCanMove()
+    -- 晚上一定能移动
+    if SB.currentState < 0 then
+        return true
+    end
+
+    for y = 1, SB.row, 1 do
+        for x = 2, SB.col, 1 do
+            local item = SB.list[y][x]
+            if item then
+                if (item.id == 2 or item.id == 3 or item.id == 4) then
+                    local arr = {}
+                    if SB.list[y - 1] and SB.list[y - 1][x] then
+                        table.insert(arr, SB.list[y - 1][x])
+                    end
+                    if SB.list[y + 1] and SB.list[y + 1][x] then
+                        table.insert(arr, SB.list[y + 1][x])
+                    end
+                    if SB.list[y] and SB.list[y][x - 1] then
+                        table.insert(arr, SB.list[y][x - 1])
+                    end
+                    if SB.list[y] and SB.list[y][x + 1] then
+                        table.insert(arr, SB.list[y][x + 1])
+                    end
+                    for index, value in ipairs(arr) do
+                        if item.id == value.id and item[item.type] == value[value.type] then
+                            return true
+                        end
+                    end
+                end
+            else
+                return true
+            end
+        
+        end
+    end
+    
+    return false
+end
+
+
 -- 移动
 function _M:Move(direction)
     if SB.state <= 0 then
@@ -126,6 +169,11 @@ function _M:Move(direction)
         GamePanel:Left()
     elseif direction.x > 0 then
         GamePanel:Right()
+    end
+
+    print(GamePanel:IsDayCanMove())
+    if not GamePanel:IsDayCanMove() then
+        GamePanel:ChangeDayNight()
     end
 end
 
@@ -182,35 +230,34 @@ function _M:Down()
 end
 
 function _M:RefreshState()
-    if self.currentState > 0 then
-        self.Text_currentState.text = math.abs(self.currentState)
-        self.Slider_taskTime.value = math.abs(self.currentState / self.totalNumbers)
+    self.Slider_taskTime.value = math.abs(SB.currentState / SB.totalNumbers)
+    self.Text_currentState.text = math.abs(SB.currentState)
+    if SB.currentState > 0 then
         self.Image_Background_Slider_taskTime.color = Color.HexToRGBA("FFFFFF")
         self.Image_Fill_Slider_taskTime.color = Color.HexToRGBA("FFFFFF")
     else
-        self.Text_currentState.text = math.abs(self.currentState)
-        GamePanel.Slider_taskTime.value = math.abs(self.currentState / self.totalNumbers)
         self.Image_Background_Slider_taskTime.color = Color.HexToRGBA("FF0000")
         self.Image_Fill_Slider_taskTime.color = Color.HexToRGBA("FF0000")
     end
 end
 
--- 10步杀一人
-function _M:NextState()
-    SB.totalStep = SB.totalStep + 1
+-- 10步杀一人 下一步
+function _M:NextStep()
+    SB.currentState = SB.currentState + SB.currentState / math.abs(SB.currentState)
+    self.Slider_taskTime.value = math.abs(SB.currentState / SB.totalNumbers)
+    self.Text_currentState.text = math.abs(SB.currentState)
 
-    self.currentState = self.currentState + self.currentState/math.abs(self.currentState)
-    if math.abs(self.currentState) >= self.totalNumbers then
-        self.currentState = -self.currentState/math.abs(self.currentState)
-        self:ChangeDayNight(self.currentState)
+    if math.abs(SB.currentState) >= SB.totalNumbers then
+        self:ChangeDayNight()
     end
 
-    self:RefreshState()
+    SB.createEnemyStep = SB.createEnemyStep + 1
 end
 
 function _M:ChangeDayNight(index)
     SB.state = 0
 
+    index = SB.currentState
     if index > 0 then
         self.Image_bg.color = Color.HexToRGBA("DCDCDC")
     elseif index < 0 then
@@ -220,20 +267,31 @@ function _M:ChangeDayNight(index)
     self.Image_day_night.gameObject:SetActive(true)
     self.Image_Image_day.gameObject:SetActive(index > 0)
     self.Image_Image_night.gameObject:SetActive(index < 0)
+
+
+    SB.currentState = -SB.currentState / math.abs(SB.currentState)
+    self:RefreshState()
+
+
+    for y = 1, SB.row, 1 do
+        for x = 1, SB.col, 1 do
+            local item = SB.list[y][x]
+            if type(item) == "table" and type(item.DayNight) == "function" then
+                item:DayNight()
+            end
+        end
+    end
+
+    -- for y = 1, SB.row, 1 do
+    --     for x = SB.col - 1, 1, -1 do
+    --         local item = SB.list[y][x]
+    --         if type(item) == "table" and type(item.DayNight) == "function" then
+    --             item:DayNight()
+    --         end
+    --     end
+    -- end
+
+    
 end
-
--- function _M:RefreshDayNight(index)
---     SB.state = 0
-
---     if index > 0 then
---         self.Image_bg.color = Color.HexToRGBA("DCDCDC")
---     elseif index < 0 then
---         self.Image_bg.color = Color.HexToRGBA("323232")
---     end
-
---     self.Image_day_night.gameObject:SetActive(true)
---     self.Image_Image_day.gameObject:SetActive(index > 0)
---     self.Image_Image_night.gameObject:SetActive(index < 0)
--- end
 
 _M:__init__()
