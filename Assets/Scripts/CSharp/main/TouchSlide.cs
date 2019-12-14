@@ -12,8 +12,9 @@ public class TouchSlide : MonoBehaviour/* , IDragHandler*/
 
 
     // public RectTransform yigong;
-    private float fingerActionSensitivity; 
-    
+    private float fingerActionSensitivity;
+    public float fingerActionSensitivityNumber;
+
     private float fingerBeginX;
     private float fingerBeginY;
     private float fingerCurrentX;
@@ -29,7 +30,7 @@ public class TouchSlide : MonoBehaviour/* , IDragHandler*/
 
     void Start()
     {
-        fingerActionSensitivity = Screen.width * 0.1f; //手指动作的敏感度，这里设定为 二十分之一的屏幕宽度.
+        fingerActionSensitivity = Screen.width * fingerActionSensitivityNumber; //手指动作的敏感度，这里设定为 二十分之一的屏幕宽度.
 
         fingerBeginX = 0;
         fingerBeginY = 0;

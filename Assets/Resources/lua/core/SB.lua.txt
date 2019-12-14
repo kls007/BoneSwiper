@@ -17,9 +17,10 @@ end
 
 function SB:InitData()
     SB.state = 1 -- 开关状态 大于0为开
-    SB.createEnemyStep = 0 -- 骷髅刷新步数
-    SB.totalNumbers = 10
-    SB.currentState = 1 ---1
+    SB.createEnemyStepTotal = 3 -- 骷髅刷新步数
+    SB.createEnemyStep = SB.createEnemyStepTotal -- 骷髅刷新步数
+    SB.totalNumbers = 6 -- 日夜交替步数
+    SB.currentState = -1 -- 初始是夜晚
     SB.killNumber = 0 -- 杀死骷髅数量
     SB.score = 0
 end

@@ -23,7 +23,10 @@ function Player:New(params)
     instance.type = instance.data.type or "attack"
     instance.attack = params.attack or 0 -- 攻击
     instance.defense = params.defense or 0 -- 防御
+    instance.maxHp = params.hp or 0 -- 血量
     instance.hp = params.hp or 0 -- 血量
+    instance.isEating = false -- 有没有在吃东西
+    instance.isAttacking = false -- 有没有在战斗
 
     instance:Create()
     instance:InitView()
@@ -64,7 +67,6 @@ function Player:InitView()
     self.Text_Text_defense = self.transform:Find("$Text_defense"):GetComponent("Text")
     self.Text_Text_hp = self.transform:Find("$Text_hp"):GetComponent("Text")
 
-
     self:RefreshUI()
 end
 
@@ -90,7 +92,6 @@ function Player:RefreshUI()
         self.data.type == "hp" or self.data.type == "player" or self.data.type == "enemy"
     )
 
-    
     self:DayNight()
 end
 
@@ -106,17 +107,18 @@ function Player:RandomCreate(pos)
     local randomRow = pos.y or math.random(1, SB.row)
     local randomCol = pos.x or math.random(1, SB.col)
 
-    -- 刷新骷髅
-    local id = math.random(2, 4)
-    if SB.createEnemyStep >= 5 then
-        -- local point = math.random(1, 2)
-        -- if point > 1 then
-        id = 5
-        SB.createEnemyStep = 0
-    -- end
-    end
-
     if SB.list[randomRow][randomCol] == nil then
+        -- 刷新骷髅
+        local id = math.random(2, 4)
+        if SB.createEnemyStep <= 0 then
+            -- local point = math.random(1, 2)
+            -- if point > 1 then
+            id = 5
+            SB.createEnemyStep = SB.createEnemyStepTotal
+            GamePanel.debug.Text_Text_createEnemyStep.text = "刷新骷髅步数: " .. SB.createEnemyStep
+        -- end
+        end
+
         local params = {
             x = randomCol,
             y = randomRow,
@@ -161,16 +163,42 @@ function Player:CreatePlayer()
             id = 1,
             attack = 1,
             defense = 0,
-            hp = 10000,
+            hp = 10
         }
-        local player = Player:New(params)
+        Player.player = Player:New(params)
 
-        return player
+        return Player.player
     else
         return self:CreatePlayer()
     end
 end
 
+-- 吃物品
+function Player:AddItem(target)
+    if target.id == 2 or target.id == 3 then
+        if self[target.type] < target[target.type] then
+            self[target.type] = target[target.type]
+        end
+    elseif target.id == 4 then
+        local arr = {[2] = 0, [4] = 0, [8] = 0, [16] = 1, [32] = 6, [64] = 15, [128] = 40}
+        local addMaxHp =
+            array.filter(
+            arr,
+            function(value)
+                return value == target.hp
+            end
+        )[1]
+        if addMaxHp then
+            self.maxHp = self.maxHp + addMaxHp
+        end
+        self.hp = self.hp + target.hp
+        if self.hp > self.maxHp then
+            self.hp = self.maxHp
+        end
+    end
+end
+
+-- 移动
 function Player:Move(direction)
     local x1 = self.x
     local y1 = self.y
@@ -190,35 +218,45 @@ function Player:Move(direction)
         else -- 下一个不是空
             if one.id == 1 and SB.currentState < 0 then -- 玩家
                 if two.id == 2 or two.id == 3 or two.id == 4 then
+                    -- if itemTypeValue > SB.list[y2][x2][itemTypeName] then
+                    --     SB.list[y2][x2][itemTypeName] = itemTypeValue
+                    -- end
+                    if self.isEating then
+                        return
+                    end
+                    self.isEating = true
+
                     local itemTypeName = two.type
                     local itemTypeValue = two[two.type]
+                    self:AddItem(two)
                     SB.list[y1][x1] = nil
 
                     SB.list[y2][x2]:Destroy()
                     SB.list[y2][x2] = one
                     SB.list[y2][x2].x = x2
                     SB.list[y2][x2].y = y2
-
-                    if itemTypeValue > SB.list[y2][x2][itemTypeName] then
-                        SB.list[y2][x2][itemTypeName] = itemTypeValue
-                    end
                 elseif two.id == 5 then
                     Player:Battle(one, two)
                 end
             elseif one.id == 5 and SB.currentState < 0 then -- 骷髅
                 if two.id == 2 or two.id == 3 or two.id == 4 then
+                    -- if itemTypeValue > SB.list[y2][x2][itemTypeName] then
+                    --     SB.list[y2][x2][itemTypeName] = itemTypeValue
+                    -- end
+                    if self.isEating then
+                        return
+                    end
+                    self.isEating = true
+
                     local itemTypeName = two.type
                     local itemTypeValue = two[two.type]
+                    self:AddItem(two)
                     SB.list[y1][x1] = nil
 
                     SB.list[y2][x2]:Destroy()
                     SB.list[y2][x2] = one
                     SB.list[y2][x2].x = x2
                     SB.list[y2][x2].y = y2
-
-                    if itemTypeValue > SB.list[y2][x2][itemTypeName] then
-                        SB.list[y2][x2][itemTypeName] = itemTypeValue
-                    end
                 elseif two.id == 1 then
                     Player:Battle(one, two)
                 end
@@ -250,6 +288,11 @@ end
 
 -- 攻击 one先攻击two 先后手 后攻击的死了就无法攻击先手 先手优势 直接杀死就免伤
 function Player:Battle(one, two)
+    if one.isAttacking then
+        return
+    end
+    one.isAttacking = true
+    
     Player:Attack(one, two)
     Player:Attack(two, one)
 end
@@ -280,17 +323,15 @@ end
 
 -- 昼夜状态
 function Player:DayNight()
-    -- print_t(self.id, "self.id")
-    
     self.Image_Image_sleep.gameObject:SetActive(false)
     if self.id == 1 or self.id == 5 then
         self.Image_Image_sleep.gameObject:SetActive(SB.currentState > 0)
 
-        -- if SB.currentState > 0 then
-        --     self.Image_item.color = Color.HexToRGBA("808080")
-        -- elseif SB.currentState < 0 then
-        --     self.Image_item.color = Color.HexToRGBA("FFFFFF")
-        -- end
+    -- if SB.currentState > 0 then
+    --     self.Image_item.color = Color.HexToRGBA("808080")
+    -- elseif SB.currentState < 0 then
+    --     self.Image_item.color = Color.HexToRGBA("FFFFFF")
+    -- end
     end
 end
 
@@ -305,9 +346,6 @@ function Player:Destroy()
     elseif self.id == 1 then
         print("游戏结束~~~")
         print("游戏结束~~~")
-        -- print("游戏结束~~~")
-        -- print("游戏结束~~~")
-        -- print("游戏结束~~~")
 
         GamePanel:GameOver()
     end
@@ -319,6 +357,23 @@ function Player:RefreshPosition()
     local posX = -self.canvasWH.x / 2 + self.cellWidth * (self.x - 1 + 0.5) + (SB.space * (self.x - 1))
     local posY = -self.canvasWH.x / 2 + self.cellWidth * (self.y - 1 + 0.5) + (SB.space * (self.y - 1))
     self.gameObject.transform.localPosition = UnityEngine.Vector3(posX, posY, 0)
+    -- do return end
+
+    -- local SeqAction = Actions.New("Sequence"):setTarget("Player")
+    -- SeqAction:addAction(
+    --     function()
+    --         local transform = self.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
+    --         local pos = transform.localPosition
+    --         local action =
+    --             Actions.New("Move", transform, 0.1, pos, UnityEngine.Vector3(posX, posY, 0), true):setTarget("Player")
+    --         action:setComplete(
+    --             function()
+    --             end
+    --         )
+    --         Actions:play(action)
+    --     end
+    -- )
+    -- Actions:play(SeqAction)
 end
 
 -- 检测是否满了 防止死循环

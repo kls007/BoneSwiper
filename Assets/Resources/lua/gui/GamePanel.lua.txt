@@ -40,6 +40,10 @@ function _M:InitView()
     self.ResultPanel = self.transform:Find("$ResultPanel")
     self.Button_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Button")
     self.Image_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Image")
+    self.debug = {
+        gameObject = transform:Find("-debug").gameObject,
+        Text_Text_createEnemyStep = self.transform:Find("-debug/$Text_createEnemyStep"):GetComponent("Text")
+    }
 
     --
 end
@@ -111,6 +115,14 @@ function _M:InitUI()
     self.ResultPanel.gameObject:SetActive(false)
 
     self.Image_day_night.gameObject:SetActive(false)
+
+    if SB.currentState > 0 then
+        self.Image_bg.color = Color.HexToRGBA("DCDCDC")
+    elseif SB.currentState < 0 then
+        self.Image_bg.color = Color.HexToRGBA("323232")
+    end
+
+    GamePanel.debug.Text_Text_createEnemyStep.text = "刷新骷髅步数: " .. SB.createEnemyStep
 end
 
 -- 白天是否不能移动了
@@ -147,13 +159,11 @@ function _M:IsDayCanMove()
             else
                 return true
             end
-        
         end
     end
-    
+
     return false
 end
-
 
 -- 移动
 function _M:Move(direction)
@@ -171,9 +181,19 @@ function _M:Move(direction)
         GamePanel:Right()
     end
 
-    print(GamePanel:IsDayCanMove())
     if not GamePanel:IsDayCanMove() then
         GamePanel:ChangeDayNight()
+    end
+
+    -- 刷新吃过了状态
+    for y = 1, SB.row, 1 do
+        for x = 1, SB.col, 1 do
+            local item = SB.list[y][x]
+            if type(item) == "table" then
+                item.isEating = false
+                item.isAttacking = false
+            end
+        end
     end
 end
 
@@ -181,9 +201,12 @@ end
 function _M:Left()
     for y = 1, SB.row, 1 do
         for x = 2, SB.col, 1 do
-            local item = SB.list[y][x]
-            if type(item) == "table" and type(item.Move) == "function" then
-                self.isMove = item:Move({x = -1, y = 0})
+            for j = x, 2, -1 do
+                -- local j = x
+                local item = SB.list[y][j]
+                if type(item) == "table" and type(item.Move) == "function" then
+                    self.isMove = item:Move({x = -1, y = 0})
+                end
             end
         end
     end
@@ -194,9 +217,11 @@ end
 function _M:Right()
     for y = 1, SB.row, 1 do
         for x = SB.col - 1, 1, -1 do
-            local item = SB.list[y][x]
-            if type(item) == "table" and type(item.Move) == "function" then
-                self.isMove = item:Move({x = 1, y = 0})
+            for j = x, SB.col - 1, 1 do
+                local item = SB.list[y][j]
+                if type(item) == "table" and type(item.Move) == "function" then
+                    self.isMove = item:Move({x = 1, y = 0})
+                end
             end
         end
     end
@@ -207,9 +232,11 @@ end
 function _M:Up()
     for x = 1, SB.col, 1 do
         for y = SB.row - 1, 1, -1 do
-            local item = SB.list[y][x]
-            if type(item) == "table" and type(item.Move) == "function" then
-                self.isMove = item:Move({x = 0, y = 1})
+            for j = y, SB.row - 1, 1 do
+                local item = SB.list[j][x]
+                if type(item) == "table" and type(item.Move) == "function" then
+                    self.isMove = item:Move({x = 0, y = 1})
+                end
             end
         end
     end
@@ -220,9 +247,11 @@ end
 function _M:Down()
     for x = 1, SB.col, 1 do
         for y = 2, SB.row, 1 do
-            local item = SB.list[y][x]
-            if type(item) == "table" and type(item.Move) == "function" then
-                self.isMove = item:Move({x = 0, y = -1})
+            for j = y, 2, -1 do
+                local item = SB.list[j][x]
+                if type(item) == "table" and type(item.Move) == "function" then
+                    self.isMove = item:Move({x = 0, y = -1})
+                end
             end
         end
     end
@@ -251,13 +280,14 @@ function _M:NextStep()
         self:ChangeDayNight()
     end
 
-    SB.createEnemyStep = SB.createEnemyStep + 1
+    SB.createEnemyStep = SB.createEnemyStep - 1
+    GamePanel.debug.Text_Text_createEnemyStep.text = "刷新骷髅步数: " .. SB.createEnemyStep
 end
 
-function _M:ChangeDayNight(index)
+function _M:ChangeDayNight()
     SB.state = 0
 
-    index = SB.currentState
+    local index = SB.currentState
     if index > 0 then
         self.Image_bg.color = Color.HexToRGBA("DCDCDC")
     elseif index < 0 then
@@ -268,10 +298,8 @@ function _M:ChangeDayNight(index)
     self.Image_Image_day.gameObject:SetActive(index > 0)
     self.Image_Image_night.gameObject:SetActive(index < 0)
 
-
     SB.currentState = -SB.currentState / math.abs(SB.currentState)
     self:RefreshState()
-
 
     for y = 1, SB.row, 1 do
         for x = 1, SB.col, 1 do
@@ -290,8 +318,6 @@ function _M:ChangeDayNight(index)
     --         end
     --     end
     -- end
-
-    
 end
 
 _M:__init__()

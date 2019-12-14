@@ -114,7 +114,7 @@ end
 array = array or {}
 function array.filter(arr, func)
     local res = {}
-    for index, value in ipairs(arr) do
+    for index, value in pairs(arr) do
         if func(value) then
             table.insert(res,value)
         end
