@@ -100,7 +100,17 @@ function _M.TestQ()
     --     )
     --     Actions:play(SeqAction)
 
-    print_t(Player.player.gameObject, "Player.player")
+    -- print_t(Player.player.gameObject, "Player.player")
+
+    -- if SB.currentState > 0 then
+    -- GamePanel.Image_bg.color = Color.HexToRGBA("DCDCDC")
+    -- elseif SB.currentState < 0 then
+    -- GamePanel.Image_bg.color = Color.HexToRGBA("101010")
+    -- end
+
+    UnityEngine.Time.timeScale = 0.1
+
+    
 end
 
 function _M.TestE()
@@ -116,26 +126,41 @@ function _M.TestE()
 
     -- -- GamePanel:InitData()
     -- -- print_t(GamePanel.cellWidth, "GamePanel.cellWidth")
-    
 
-    local SeqAction = Actions.New("Sequence"):setTarget("Test")
-    SeqAction:addAction(
-        function()
-            local transform = Player.player.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
-            local x = 1200
-            local pos = transform.position
-            local action =
-                Actions.New("Move", transform, 0.3, pos, UnityEngine.Vector3(pos.x + 100, pos.y, 0)):setTarget(
-                "Test"
-            )
-            action:setComplete(
-                function()
-                end
-            )
-            Actions:play(action)
-        end
-    )
-    Actions:play(SeqAction)
+    function fun1(x, y)
+        local SeqAction = Actions.New("Sequence"):setTarget("Test")
+        SeqAction:addAction(
+            function()
+                local transform = Player.player.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
+                local pos = transform.position
+
+                local canvas = UnityEngine.GameObject.Find("Canvas").gameObject
+                local canvasWH = canvas:GetComponent("RectTransform").sizeDelta -- 画布宽高
+                local cellWidth = (canvasWH.x - (SB.space * (SB.row - 1))) / SB.row -- 单元格宽高
+                -- local x = math.random(1, 4)
+                -- local y = math.random(1, 4)
+                print("x:".. x, "y:" .. y)
+                local posX = -canvasWH.x / 2 + cellWidth * (x - 1 + 0.5) + (SB.space * (x - 1))
+                local posY = -canvasWH.x / 2 + cellWidth * (y - 1 + 0.5) + (SB.space * (y - 1))
+                -- self.gameObject.transform.localPosition = UnityEngine.Vector3(posX, posY, 0)
+
+                local action =
+                    Actions.New("Move", transform, 0.3, transform.localPosition, UnityEngine.Vector3(posX, posY, 0), true):setTarget(
+                    "Test"
+                )
+                action:setComplete(
+                    function()
+                    end
+                )
+                Actions:play(action)
+            end
+        )
+        Actions:play(SeqAction)
+    end
+
+    fun1(2, 1)
+    fun1(1, 1)
+    
 
     -- print_t(GamePanel.list, "GamePanel.list")
     -- GamePanel:RefreshDayNight(1)
@@ -149,7 +174,8 @@ function _M.TestR()
 
     -- print_t(GamePanel.Slider_taskTime.value, "GamePanel.Slider_taskTime")
 
-    GamePanel:RefreshDayNight(-1)
+    -- GamePanel:RefreshDayNight(-1)
+    fun1(4, 1)
 end
 
 function _M.TestW()

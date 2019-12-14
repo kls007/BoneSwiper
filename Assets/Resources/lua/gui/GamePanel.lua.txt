@@ -18,7 +18,8 @@ function _M:InitView()
     self.Image_Button_back = self.transform:Find("$Button_back"):GetComponent("Image")
     self.Text_score = self.transform:Find("$score"):GetComponent("Text")
     self.Text_currentState = self.transform:Find("$currentState"):GetComponent("Text")
-    self.Text_Text_killNumber = self.transform:Find("game_bg/killNumber/$Text_killNumber"):GetComponent("Text")
+    self.Text_Text_day_night = self.transform:Find("killNumber_bg/day_night/$Text_day_night"):GetComponent("Text")
+    self.Text_Text_killNumber = self.transform:Find("killNumber_bg/killNumber/$Text_killNumber"):GetComponent("Text")
     self.game = self.transform:Find("$game")
     self.Image_item = self.transform:Find("$game/$item"):GetComponent("Image")
     self.Image_Image_sleep = self.transform:Find("$game/$item/$Image_sleep"):GetComponent("Image")
@@ -27,16 +28,15 @@ function _M:InitView()
     self.Text_Text_attack = self.transform:Find("$game/$item/$Text_attack"):GetComponent("Text")
     self.Text_Text_defense = self.transform:Find("$game/$item/$Text_defense"):GetComponent("Text")
     self.Text_Text_hp = self.transform:Find("$game/$item/$Text_hp"):GetComponent("Text")
+    self.Image_day_night = self.transform:Find("$day_night"):GetComponent("Image")
+    self.Image_Image_day = self.transform:Find("$day_night/$Image_day"):GetComponent("Image")
+    self.Image_Image_night = self.transform:Find("$day_night/$Image_night"):GetComponent("Image")
     self.Slider_taskTime = self.transform:Find("$Slider_taskTime"):GetComponent("Slider")
     self.Image_Background_Slider_taskTime =
         self.transform:Find("$Slider_taskTime/$Background_Slider_taskTime"):GetComponent("Image")
     self.Image_Fill_Slider_taskTime =
         self.transform:Find("$Slider_taskTime/Fill Area/$Fill_Slider_taskTime"):GetComponent("Image")
     self.Text_Text_taskTime = self.transform:Find("$Slider_taskTime/$Text_taskTime"):GetComponent("Text")
-    self.Image_day_night = self.transform:Find("$day_night"):GetComponent("Image")
-    self.Image_Image_day = self.transform:Find("$day_night/$Image_day"):GetComponent("Image")
-    self.Image_Image_night = self.transform:Find("$day_night/$Image_night"):GetComponent("Image")
-    self.Text_Text_day_night = self.transform:Find("$day_night/$Text_day_night"):GetComponent("Text")
     self.ResultPanel = self.transform:Find("$ResultPanel")
     self.Button_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Button")
     self.Image_Button_replay = self.transform:Find("$ResultPanel/$Button_replay"):GetComponent("Image")
@@ -102,10 +102,8 @@ function _M:Start()
 
     Player:CreatePlayer()
 
-    self:RefreshState()
-
-    self.isMove = false
-    self.score = 0
+    -- self.isMove = false
+    -- self.score = 0
 
     self:InitUI()
 end
@@ -119,8 +117,9 @@ function _M:InitUI()
     if SB.currentState > 0 then
         self.Image_bg.color = Color.HexToRGBA("DCDCDC")
     elseif SB.currentState < 0 then
-        self.Image_bg.color = Color.HexToRGBA("323232")
+        self.Image_bg.color = Color.HexToRGBA("101010")
     end
+    self:RefreshState()
 
     GamePanel.debug.Text_Text_createEnemyStep.text = "刷新骷髅步数: " .. SB.createEnemyStep
 end
@@ -185,11 +184,14 @@ function _M:Move(direction)
         GamePanel:ChangeDayNight()
     end
 
-    -- 刷新吃过了状态
+    -- 刷新所有item状态
     for y = 1, SB.row, 1 do
         for x = 1, SB.col, 1 do
             local item = SB.list[y][x]
             if type(item) == "table" then
+                item:RefreshPosition()
+                item:RefreshUI()
+
                 item.isEating = false
                 item.isAttacking = false
             end
@@ -268,6 +270,12 @@ function _M:RefreshState()
         self.Image_Background_Slider_taskTime.color = Color.HexToRGBA("FF0000")
         self.Image_Fill_Slider_taskTime.color = Color.HexToRGBA("FF0000")
     end
+
+    if SB.currentState > 0 then
+        self.Text_Text_day_night.text = "日"
+    elseif SB.currentState < 0 then
+        self.Text_Text_day_night.text = "夜"
+    end
 end
 
 -- 10步杀一人 下一步
@@ -285,20 +293,19 @@ function _M:NextStep()
 end
 
 function _M:ChangeDayNight()
-    SB.state = 0
-
-    local index = SB.currentState
-    if index > 0 then
-        self.Image_bg.color = Color.HexToRGBA("DCDCDC")
-    elseif index < 0 then
-        self.Image_bg.color = Color.HexToRGBA("323232")
-    end
-
-    self.Image_day_night.gameObject:SetActive(true)
-    self.Image_Image_day.gameObject:SetActive(index > 0)
-    self.Image_Image_night.gameObject:SetActive(index < 0)
+    SB.state = 0 -- 暂停
 
     SB.currentState = -SB.currentState / math.abs(SB.currentState)
+
+    self.Image_day_night.gameObject:SetActive(true)
+    self.Image_Image_day.gameObject:SetActive(SB.currentState > 0)
+    self.Image_Image_night.gameObject:SetActive(SB.currentState < 0)
+
+    if SB.currentState > 0 then
+        self.Image_bg.color = Color.HexToRGBA("DCDCDC")
+    elseif SB.currentState < 0 then
+        self.Image_bg.color = Color.HexToRGBA("101010")
+    end
     self:RefreshState()
 
     for y = 1, SB.row, 1 do
@@ -309,15 +316,6 @@ function _M:ChangeDayNight()
             end
         end
     end
-
-    -- for y = 1, SB.row, 1 do
-    --     for x = SB.col - 1, 1, -1 do
-    --         local item = SB.list[y][x]
-    --         if type(item) == "table" and type(item.DayNight) == "function" then
-    --             item:DayNight()
-    --         end
-    --     end
-    -- end
 end
 
 _M:__init__()

@@ -23,16 +23,12 @@ function SB:InitData()
     SB.currentState = -1 -- 初始是夜晚
     SB.killNumber = 0 -- 杀死骷髅数量
     SB.score = 0
-end
 
--- SB.wuxingList =
--- {
---     {id = 1, name = "我", add = 3, type = "player", number = 2, color = "f2debd", icon = "sprite/food/Tomato_Icon"},
---     {id = 2, name = "刀", add = 4, type = "attack", number = 2, color = "b8f1ed", icon = "sprite/food/Tomato_Icon"},
---     {id = 3, name = "盾", add = 2, type = "defense", number = 2, color = "f1f1b8", icon = "sprite/food/Lettuce_Icon"},
---     {id = 4, name = "血", add = 5, type = "hp", number = 2, color = "b8f1cc", icon = "sprite/food/Tomato_Icon"},
---     {id = 5, name = "骷髅", add = 1, type = "enemy", number = 2, color = "f16d7a", icon = "sprite/caidao"},
--- }
+
+    SB.canvas = UnityEngine.GameObject.Find("Canvas").gameObject
+    SB.canvasWH = SB.canvas:GetComponent("RectTransform").sizeDelta
+    SB.cellWidth = (SB.canvasWH.x - (SB.space * (SB.row - 1))) / SB.row -- 单元格宽高
+end
 
 SB.wuxingList = {
     {id = 1, name = "我", add = 3, type = "player", number = 2, color = "FFFFFF", icon = "sprite/food/Tomato_Icon"},
