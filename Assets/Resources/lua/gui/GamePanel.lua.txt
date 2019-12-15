@@ -100,7 +100,7 @@ function _M:Start()
 
     SB:InitData()
 
-    Player:CreatePlayer()
+    Item:CreatePlayer()
 
     -- self.isMove = false
     -- self.score = 0
@@ -212,7 +212,7 @@ function _M:Left()
             end
         end
     end
-    Player:RandomCreate({x = SB.col, time = 0.4})
+    Item:RandomCreate({x = SB.col, time = 0.4})
 end
 
 -- 右移
@@ -227,7 +227,7 @@ function _M:Right()
             end
         end
     end
-    Player:RandomCreate({x = 1, time = 0.4})
+    Item:RandomCreate({x = 1, time = 0.4})
 end
 
 -- 上移
@@ -242,7 +242,7 @@ function _M:Up()
             end
         end
     end
-    Player:RandomCreate({y = 1, time = 0.4})
+    Item:RandomCreate({y = 1, time = 0.4})
 end
 
 -- 下移
@@ -257,7 +257,7 @@ function _M:Down()
             end
         end
     end
-    Player:RandomCreate({y = SB.row, time = 0.4})
+    Item:RandomCreate({y = SB.row, time = 0.4})
 end
 
 function _M:RefreshState()

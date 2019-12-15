@@ -2,7 +2,8 @@ SB = {}
 
 SB.row = 4 -- 行
 SB.col = 4 -- 列
-SB.space = 0 -- 空格
+SB.space = 0 -- 单元间隙
+SB.padding = 66 -- 边界间隙
 SB.level = 1
 
 function SB:InitList()
@@ -17,17 +18,16 @@ end
 
 function SB:InitData()
     SB.state = 1 -- 开关状态 大于0为开
-    SB.createEnemyStepTotal = 3 -- 骷髅刷新步数
+    SB.createEnemyStepTotal = 20 -- 骷髅刷新步数
     SB.createEnemyStep = SB.createEnemyStepTotal -- 骷髅刷新步数
-    SB.totalNumbers = 6 -- 日夜交替步数
+    SB.totalNumbers = 10 -- 日夜交替步数
     SB.currentState = -1 -- 初始是夜晚
     SB.killNumber = 0 -- 杀死骷髅数量
     SB.score = 0
 
-
     SB.canvas = UnityEngine.GameObject.Find("Canvas").gameObject
     SB.canvasWH = SB.canvas:GetComponent("RectTransform").sizeDelta
-    SB.cellWidth = (SB.canvasWH.x - (SB.space * (SB.row - 1))) / SB.row -- 单元格宽高
+    SB.cellWidth = (SB.canvasWH.x - (SB.padding * 2) - (SB.space * (SB.row - 1))) / SB.row -- 单元格宽高
 end
 
 SB.wuxingList = {

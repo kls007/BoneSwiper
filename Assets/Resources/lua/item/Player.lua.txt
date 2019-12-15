@@ -39,9 +39,9 @@ end
 
 -- 生成物体
 function Player:Create()
-    local canvas = UnityEngine.GameObject.Find("Canvas").gameObject
-    self.canvasWH = canvas:GetComponent("RectTransform").sizeDelta -- 画布宽高
-    self.cellWidth = (self.canvasWH.x - (SB.space * (SB.row - 1))) / SB.row -- 单元格宽高
+    -- local canvas = UnityEngine.GameObject.Find("Canvas").gameObject
+    -- self.canvasWH = SB.canvas:GetComponent("RectTransform").sizeDelta -- 画布宽高
+    -- self.cellWidth = (SB.canvasWH.x - (SB.space * (SB.row - 1))) / SB.row -- 单元格宽高
 
     self.gameObject = functions.GetGo(GamePanel.parent, GamePanel.prefab)
     self.transform = self.gameObject.transform
@@ -52,9 +52,9 @@ function Player:Create()
 
     self.rectTransform = self.gameObject:GetComponent("RectTransform")
     -- 设置宽高
-    self.rectTransform.sizeDelta = UnityEngine.Vector2(self.cellWidth, self.cellWidth)
+    self.rectTransform.sizeDelta = UnityEngine.Vector2(SB.cellWidth, SB.cellWidth)
 
-    self:RefreshPosition()
+    self:RefreshPosition(0)
 end
 
 -- 初始化UI
@@ -134,7 +134,7 @@ function Player:RandomCreate(pos)
         end
 
         local SeqAction = Actions.New("Sequence"):setTarget("Player")
-        SeqAction:addDelay(0.1)
+        SeqAction:addDelay(0.2)
         SeqAction:addAction(
             function()
                 GamePanel:NextStep()
@@ -163,7 +163,7 @@ function Player:CreatePlayer()
             id = 1,
             attack = 1,
             defense = 0,
-            hp = 10
+            hp = 100000
         }
         Player.player = Player:New(params)
 
@@ -275,14 +275,14 @@ function Player:Move(direction)
             end
         end
 
-        if SB.list[y2][x2] then
-            SB.list[y2][x2]:RefreshPosition()
-            SB.list[y2][x2]:RefreshUI()
-        end
-        if SB.list[y1][x1] then
-            SB.list[y1][x1]:RefreshPosition()
-            SB.list[y1][x1]:RefreshUI()
-        end
+        -- if SB.list[y2][x2] then
+        --     SB.list[y2][x2]:RefreshPosition()
+        --     SB.list[y2][x2]:RefreshUI()
+        -- end
+        -- if SB.list[y1][x1] then
+        --     SB.list[y1][x1]:RefreshPosition()
+        --     SB.list[y1][x1]:RefreshUI()
+        -- end
     end
 end
 
@@ -292,7 +292,7 @@ function Player:Battle(one, two)
         return
     end
     one.isAttacking = true
-    
+
     Player:Attack(one, two)
     Player:Attack(two, one)
 end
@@ -352,28 +352,30 @@ function Player:Destroy()
 end
 
 -- 刷新位置
-function Player:RefreshPosition()
+function Player:RefreshPosition(type)
     -- 设置位置xy
-    local posX = -self.canvasWH.x / 2 + self.cellWidth * (self.x - 1 + 0.5) + (SB.space * (self.x - 1))
-    local posY = -self.canvasWH.x / 2 + self.cellWidth * (self.y - 1 + 0.5) + (SB.space * (self.y - 1))
-    self.gameObject.transform.localPosition = UnityEngine.Vector3(posX, posY, 0)
-    -- do return end
+    local posX = -SB.canvasWH.x / 2 + SB.cellWidth * (self.x - 1 + 0.5) + (SB.space * (self.x - 1)) + SB.padding
+    local posY = -SB.canvasWH.x / 2 + SB.cellWidth * (self.y - 1 + 0.5) + (SB.space * (self.y - 1)) + SB.padding
 
-    -- local SeqAction = Actions.New("Sequence"):setTarget("Player")
-    -- SeqAction:addAction(
-    --     function()
-    --         local transform = self.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
-    --         local pos = transform.localPosition
-    --         local action =
-    --             Actions.New("Move", transform, 0.1, pos, UnityEngine.Vector3(posX, posY, 0), true):setTarget("Player")
-    --         action:setComplete(
-    --             function()
-    --             end
-    --         )
-    --         Actions:play(action)
-    --     end
-    -- )
-    -- Actions:play(SeqAction)
+    if type == 0 then
+        self.gameObject.transform.localPosition = UnityEngine.Vector3(posX, posY, 0)
+    else
+        local SeqAction = Actions.New("Sequence"):setTarget("Player")
+        SeqAction:addAction(
+            function()
+                local transform = self.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
+                local pos = transform.localPosition
+                local action =
+                    Actions.New("Move", transform, 0.15, pos, UnityEngine.Vector3(posX, posY, 0), true):setTarget("Player")
+                action:setComplete(
+                    function()
+                    end
+                )
+                Actions:play(action)
+            end
+        )
+        Actions:play(SeqAction)
+    end
 end
 
 -- 检测是否满了 防止死循环

@@ -100,54 +100,38 @@ function _M.TestQ()
     --     )
     --     Actions:play(SeqAction)
 
-    -- print_t(Player.player.gameObject, "Player.player")
 
-    -- if SB.currentState > 0 then
-    -- GamePanel.Image_bg.color = Color.HexToRGBA("DCDCDC")
-    -- elseif SB.currentState < 0 then
-    -- GamePanel.Image_bg.color = Color.HexToRGBA("101010")
-    -- end
-
-    UnityEngine.Time.timeScale = 0.1
-
+    print_t(Item.player.gameObject, "Player.player")
+    Item.player:Move({x = -1, y = 0})
     
+
 end
 
 function _M.TestE()
     print_t("EEE", "ShuaiTest")
     -- TipManager.Show("TestE")
 
-    -- local gameObject = functions.GetGo(GamePanel.parent, GamePanel.prefab)
-    -- print_t(gameObject, "gameObject")
-
-    -- local player = Player:CreatePlayer()
-    -- print_t(player, "player")
-    -- local player = Player:CreatePlayer()
-
-    -- -- GamePanel:InitData()
-    -- -- print_t(GamePanel.cellWidth, "GamePanel.cellWidth")
-
-    function fun1(x, y)
+    function fun1(params)
+        params = params or {}
         local SeqAction = Actions.New("Sequence"):setTarget("Test")
+        local transform = Player.player.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
         SeqAction:addAction(
             function()
-                local transform = Player.player.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
-                local pos = transform.position
-
-                local canvas = UnityEngine.GameObject.Find("Canvas").gameObject
-                local canvasWH = canvas:GetComponent("RectTransform").sizeDelta -- 画布宽高
-                local cellWidth = (canvasWH.x - (SB.space * (SB.row - 1))) / SB.row -- 单元格宽高
-                -- local x = math.random(1, 4)
-                -- local y = math.random(1, 4)
-                print("x:".. x, "y:" .. y)
-                local posX = -canvasWH.x / 2 + cellWidth * (x - 1 + 0.5) + (SB.space * (x - 1))
-                local posY = -canvasWH.x / 2 + cellWidth * (y - 1 + 0.5) + (SB.space * (y - 1))
-                -- self.gameObject.transform.localPosition = UnityEngine.Vector3(posX, posY, 0)
+                local x = params.x or math.random(1, 4)
+                local y = params.y or math.random(1, 4)
+                -- print("x:".. x, "y:" .. y)
+                local posX = -SB.canvasWH.x / 2 + SB.cellWidth * (x - 1 + 0.5) + (SB.space * (x - 1))
+                local posY = -SB.canvasWH.x / 2 + SB.cellWidth * (y - 1 + 0.5) + (SB.space * (y - 1))
 
                 local action =
-                    Actions.New("Move", transform, 0.3, transform.localPosition, UnityEngine.Vector3(posX, posY, 0), true):setTarget(
-                    "Test"
-                )
+                    Actions.New(
+                    "Move",
+                    transform,
+                    0.2,
+                    transform.localPosition,
+                    UnityEngine.Vector3(posX, posY, 0),
+                    true
+                ):setTarget("Test")
                 action:setComplete(
                     function()
                     end
@@ -155,26 +139,18 @@ function _M.TestE()
                 Actions:play(action)
             end
         )
+
         Actions:play(SeqAction)
     end
 
-    fun1(2, 1)
-    fun1(1, 1)
-    
-
-    -- print_t(GamePanel.list, "GamePanel.list")
-    -- GamePanel:RefreshDayNight(1)
+    -- fun1({x = 2, y = 1})
+    fun1()
 end
 
 function _M.TestR()
     -- print_t("RRR", "ShuaiTest")
     -- TipManager.Show("TestR")
 
-    -- print_t(SB.list, "SB.list")
-
-    -- print_t(GamePanel.Slider_taskTime.value, "GamePanel.Slider_taskTime")
-
-    -- GamePanel:RefreshDayNight(-1)
     fun1(4, 1)
 end
 

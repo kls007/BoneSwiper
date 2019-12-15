@@ -31,3 +31,7 @@ luaenv.Dispose();
 UnityEngineLightWrap有问题，需要删除该wrap文件
 并在Assets\XLua\Gen\XLuaGenAutoRegister.cs中屏蔽
 //translator.DelayWrapLoader(typeof(UnityEngine.Light), UnityEngineLightWrap.__Register);这行代码
+
+
+UnityEngine.Time.timeScale = 0.1
+UnityEngine.Time.timeScale = 1

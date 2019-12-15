@@ -1,52 +1,402 @@
----@class MenuPanel
-MenuPanel = MenuPanel or {}
-local _M = MenuPanel
+---@class 物体
+Item = {}
+local _M = Item
 
-function _M:__init__()
-    _M:InitView()
-    _M:Main()
-end
+function Item:New(params)
+    local instance = {}
+    setmetatable(instance, self)
+    self.__index = self
 
-function _M:InitView()
-    self.gameObject = UnityEngine.GameObject.Find("Canvas/Root_Panel/MenuPanel").gameObject
-    self.transform = self.gameObject.transform
-    --
+    instance.x = params.x
+    instance.y = params.y
+    SB.list[instance.y][instance.x] = instance
 
-    self.Image_mask = self.transform:Find("$mask"):GetComponent("Image");
-    self.Text_level = self.transform:Find("$mask/$level"):GetComponent("Text");
-    self.Button_Button_start = self.transform:Find("$mask/$Button_start"):GetComponent("Button");
-    self.Image_Button_start = self.transform:Find("$mask/$Button_start"):GetComponent("Image");
-    
-    
-    
-    
-    
-end
-
-function _M:Main()
-    self.gameObject:SetActive(false)
-
-    -- for index, Button in ipairs(self.button_list) do
-        UnityEngine.EventTriggerListener.Get(self.Button_Button_start.gameObject, nil).onClick = function()
-            GameManager:StartGame()
+    instance.id = params.id
+    instance.data =
+        array.filter(
+        SB.wuxingList,
+        function(value)
+            return value.id == instance.id
         end
+    )[1]
+
+    instance.type = instance.data.type or "attack"
+    instance.attack = params.attack or 0 -- 攻击
+    instance.defense = params.defense or 0 -- 防御
+    instance.maxHp = params.hp or 0 -- 血量
+    instance.hp = params.hp or 0 -- 血量
+    instance.isEating = false -- 有没有在吃东西
+    instance.isAttacking = false -- 有没有在战斗
+
+    instance:Create()
+    instance:InitView()
+    -- table.insert(instance.list, instance)
+    -- instance.gameObject = params.gameObject
+    -- instance.transform = instance.gameObject.transform
+
+    return instance
+end
+
+-- 生成物体
+function Item:Create()
+    self.gameObject = functions.GetGo(GamePanel.parent, GamePanel.prefab)
+    self.transform = self.gameObject.transform
+    self.transform.localScale = UnityEngine.Vector3.one
+    self.transform.localPosition = UnityEngine.Vector3.zero
+    self.gameObject:SetActive(true)
+    self.gameObject.name = self.x .. "-" .. self.y
+
+    self.rectTransform = self.gameObject:GetComponent("RectTransform")
+    -- 设置宽高
+    self.rectTransform.sizeDelta = UnityEngine.Vector2(SB.cellWidth, SB.cellWidth)
+
+    self:RefreshPosition(0)
+end
+
+-- 初始化UI
+function Item:InitView()
+    self.Image_item = self.transform:Find(""):GetComponent("Image")
+    self.Image_Image_sleep = self.transform:Find("$Image_sleep"):GetComponent("Image")
+    self.Image_Image_name = self.transform:Find("$Image_name"):GetComponent("Image")
+    self.Text_Text_name = self.transform:Find("$Text_name"):GetComponent("Text")
+    self.Text_Text_attack = self.transform:Find("$Text_attack"):GetComponent("Text")
+    self.Text_Text_defense = self.transform:Find("$Text_defense"):GetComponent("Text")
+    self.Text_Text_hp = self.transform:Find("$Text_hp"):GetComponent("Text")
+
+    self:RefreshUI()
+end
+
+-- 刷新
+function Item:RefreshUI()
+    self.Text_Text_name.text = self.data.name
+    self.Image_Image_name.sprite = res.item["Image_item_" .. self.data.type].sprite
+    self.Text_Text_attack.text = self.attack
+    self.Text_Text_defense.text = self.defense
+    self.Text_Text_hp.text = self.hp
+
+    self.Text_Text_name.color = Color.HexToRGBA(self.data.color)
+    -- self.Image_item.color = Color.HexToRGBA(self.data.color)
+    self.Image_item.sprite = res.grid["Image_grid_" .. self.data.type].sprite
+
+    self.Text_Text_attack.gameObject:SetActive(
+        self.data.type == "attack" or self.data.type == "player" or self.data.type == "enemy"
+    )
+    self.Text_Text_defense.gameObject:SetActive(
+        self.data.type == "defense" or self.data.type == "player" or self.data.type == "enemy"
+    )
+    self.Text_Text_hp.gameObject:SetActive(
+        self.data.type == "hp" or self.data.type == "player" or self.data.type == "enemy"
+    )
+
+    self:DayNight()
+end
+
+function Item:RandomCreate(pos)
+    if Item:IsFull() then
+        print("满了~~~")
+        -- SB.currentState = -SB.currentState / math.abs(SB.currentState)
+        -- GamePanel:RefreshState()
+        return
+    end
+
+    pos = pos or {}
+    local randomRow = pos.y or math.random(1, SB.row)
+    local randomCol = pos.x or math.random(1, SB.col)
+
+    if SB.list[randomRow][randomCol] == nil then
+        -- 刷新骷髅
+        local id = math.random(2, 4)
+        if SB.createEnemyStep <= 0 then
+            -- local point = math.random(1, 2)
+            -- if point > 1 then
+            id = 5
+            SB.createEnemyStep = SB.createEnemyStepTotal
+            GamePanel.debug.Text_Text_createEnemyStep.text = "刷新骷髅步数: " .. SB.createEnemyStep
+        -- end
+        end
+
+        local params = {
+            x = randomCol,
+            y = randomRow,
+            id = id,
+            attack = 2, -- ({2, 4})[math.random(1, 2)],
+            defense = 2, -- ({2, 4})[math.random(1, 2)],
+            hp = 2 -- ({2, 4})[math.random(1, 2)]
+        }
+        if params.id == 5 then -- 骷髅
+            params.attack = 1
+            params.defense = 0
+            params.hp = 10
+        end
+
+        local SeqAction = Actions.New("Sequence"):setTarget("Item")
+        SeqAction:addDelay(0.2)
+        SeqAction:addAction(
+            function()
+                GamePanel:NextStep()
+                return Item:New(params)
+            end
+        )
+        Actions:play(SeqAction)
+    else
+        return self:RandomCreate()
+    end
+end
+
+function Item:CreatePlayer()
+    if Item:IsFull() then
+        print("满了~~~")
+        return
+    end
+
+    local randomRow = math.random(1, SB.row)
+    local randomCol = math.random(1, SB.col)
+
+    if SB.list[randomRow][randomCol] == nil then
+        local params = {
+            x = randomCol,
+            y = randomRow,
+            id = 1,
+            attack = 1,
+            defense = 0,
+            hp = 100000
+        }
+        Item.player = Item:New(params)
+
+        return Item.player
+    else
+        return self:CreatePlayer()
+    end
+end
+
+-- 吃物品
+function Item:AddItem(target)
+    if target.id == 2 or target.id == 3 then
+        if self[target.type] < target[target.type] then
+            self[target.type] = target[target.type]
+        end
+    elseif target.id == 4 then
+        local arr = {[2] = 0, [4] = 0, [8] = 0, [16] = 1, [32] = 6, [64] = 15, [128] = 40}
+        local addMaxHp =
+            array.filter(
+            arr,
+            function(value)
+                return value == target.hp
+            end
+        )[1]
+        if addMaxHp then
+            self.maxHp = self.maxHp + addMaxHp
+        end
+        self.hp = self.hp + target.hp
+        if self.hp > self.maxHp then
+            self.hp = self.maxHp
+        end
+    end
+end
+
+-- 移动
+function Item:Move(direction)
+    direction = direction or {x = 0, y = 0}
+    local x1 = self.x
+    local y1 = self.y
+    local x2 = self.x + direction.x
+    local y2 = self.y + direction.y
+
+    -- local one = SB.list[y1][x1]
+    -- local two = SB.list[y2][x2]
+
+    -- if self ~= nil then -- 自己不是空
+    -- if two == nil then -- 下一个是空直接移动
+        -- SB.list[y1][x1] = nil
+
+        -- SB.list[y2][x2] = one
+        -- SB.list[y2][x2].x = x2
+        -- SB.list[y2][x2].y = y2
+        local pos = self.transform.localPosition
+        local x = pos.x + direction.x * SB.cellWidth
+        local y = pos.y + direction.y * SB.cellWidth
+
+        local SeqAction = Actions.New("Sequence"):setTarget("Item")
+        SeqAction:addAction(
+            function()
+                -- local transform = self.transform
+                
+                local action =
+                    Actions.New(
+                    "Move",
+                    self.transform,
+                    0.2,
+                    self.transform.localPosition,
+                    UnityEngine.Vector3(x, y, 0),
+                    true
+                ):setTarget("Item")
+                action:setComplete(
+                    function()
+                    end
+                )
+                Actions:play(action)
+            end
+        )
+        Actions:play(SeqAction)
+    -- else -- 下一个不是空
+    --     if one.id == 1 and SB.currentState < 0 then -- 玩家
+    --         if two.id == 2 or two.id == 3 or two.id == 4 then
+    --             -- if itemTypeValue > SB.list[y2][x2][itemTypeName] then
+    --             --     SB.list[y2][x2][itemTypeName] = itemTypeValue
+    --             -- end
+    --             if self.isEating then
+    --                 return
+    --             end
+    --             self.isEating = true
+
+    --             local itemTypeName = two.type
+    --             local itemTypeValue = two[two.type]
+    --             self:AddItem(two)
+    --             SB.list[y1][x1] = nil
+
+    --             SB.list[y2][x2]:Destroy()
+    --             SB.list[y2][x2] = one
+    --             SB.list[y2][x2].x = x2
+    --             SB.list[y2][x2].y = y2
+    --         elseif two.id == 5 then
+    --             Item:Battle(one, two)
+    --         end
+    --     elseif one.id == 5 and SB.currentState < 0 then -- 骷髅
+    --         if two.id == 2 or two.id == 3 or two.id == 4 then
+    --             -- if itemTypeValue > SB.list[y2][x2][itemTypeName] then
+    --             --     SB.list[y2][x2][itemTypeName] = itemTypeValue
+    --             -- end
+    --             if self.isEating then
+    --                 return
+    --             end
+    --             self.isEating = true
+
+    --             local itemTypeName = two.type
+    --             local itemTypeValue = two[two.type]
+    --             self:AddItem(two)
+    --             SB.list[y1][x1] = nil
+
+    --             SB.list[y2][x2]:Destroy()
+    --             SB.list[y2][x2] = one
+    --             SB.list[y2][x2].x = x2
+    --             SB.list[y2][x2].y = y2
+    --         elseif two.id == 1 then
+    --             Item:Battle(one, two)
+    --         end
+    --     elseif one.id == 2 or one.id == 3 or one.id == 4 then
+    --         if one.id == two.id and one[one.type] == two[two.type] then
+    --             local itemTypeName = one.type
+    --             local itemTypeValue = one[one.type]
+    --             SB.list[y1][x1] = nil
+
+    --             SB.list[y2][x2]:Destroy()
+    --             SB.list[y2][x2] = one
+    --             SB.list[y2][x2].x = x2
+    --             SB.list[y2][x2].y = y2
+    --             SB.list[y2][x2][itemTypeName] = SB.list[y2][x2][itemTypeName] + itemTypeValue
+    --         end
+    --     end
+    -- end
+
     -- end
 end
 
-function _M:Open()
-    self.gameObject:SetActive(true)
-    -- AudioManager.AudioSource_bgm_menu:Play()
+-- 攻击 one先攻击two 先后手 后攻击的死了就无法攻击先手 先手优势 直接杀死就免伤
+function Item:Battle(one, two)
+    if one.isAttacking then
+        return
+    end
+    one.isAttacking = true
 
-    self:Refresh()
+    Item:Attack(one, two)
+    Item:Attack(two, one)
 end
 
-function _M:Close()
+-- 攻击 one先攻击two 先后手 后攻击的死了就无法攻击先手 先手优势 直接杀死就免伤
+function Item:Attack(one, two)
+    if one.hp <= 0 or two.hp <= 0 then
+        return
+    end
+
+    local leftDefense = two.defense - one.attack -- 攻击对防御
+    one.attack = one.attack - 1 - two.defense -- 攻击者损耗武器耐久 至少扣一点，最低扣到1，防御者每有一点防御多扣一点耐久
+    if one.attack < 1 then
+        one.attack = 1
+    end
+
+    two.defense = leftDefense
+    if leftDefense < 0 then
+        two.defense = 0
+        two.hp = two.hp - math.abs(leftDefense)
+    end
+
+    if two.hp <= 0 then
+        two:Destroy()
+        return
+    end
+end
+
+-- 昼夜状态
+function Item:DayNight()
+    self.Image_Image_sleep.gameObject:SetActive(false)
+    if self.id == 1 or self.id == 5 then
+        self.Image_Image_sleep.gameObject:SetActive(SB.currentState > 0)
+    end
+end
+
+-- 销毁
+function Item:Destroy()
     self.gameObject:SetActive(false)
-    -- AudioManager.AudioSource_bgm_menu:Stop()
+    SB.list[self.y][self.x] = nil
+    -- self = nil
+    if self.id == 5 then
+        SB.killNumber = SB.killNumber + 1
+        GamePanel.Text_Text_killNumber.text = SB.killNumber
+    elseif self.id == 1 then
+        print("游戏结束~~~")
+        print("游戏结束~~~")
+
+        GamePanel:GameOver()
+    end
 end
 
-function _M:Refresh(param)
-    -- self.Text_level.text = "当前关卡: " .. UnityEngine.PlayerPrefs.GetInt("level", 1)
+-- 刷新位置
+function Item:RefreshPosition(type)
+    -- 设置位置xy
+    local posX = -SB.canvasWH.x / 2 + SB.cellWidth * (self.x - 1 + 0.5) + (SB.space * (self.x - 1)) + SB.padding
+    local posY = -SB.canvasWH.x / 2 + SB.cellWidth * (self.y - 1 + 0.5) + (SB.space * (self.y - 1)) + SB.padding
+
+    if type == 0 then
+        self.gameObject.transform.localPosition = UnityEngine.Vector3(posX, posY, 0)
+    else
+        local SeqAction = Actions.New("Sequence"):setTarget("Item")
+        SeqAction:addAction(
+            function()
+                local transform = self.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
+                local pos = transform.localPosition
+                local action =
+                    Actions.New("Move", transform, 0.15, pos, UnityEngine.Vector3(posX, posY, 0), true):setTarget(
+                    "Item"
+                )
+                action:setComplete(
+                    function()
+                    end
+                )
+                Actions:play(action)
+            end
+        )
+        Actions:play(SeqAction)
+    end
 end
 
-_M:__init__()
+-- 检测是否满了 防止死循环
+function Item:IsFull()
+    for y = 1, SB.row, 1 do
+        for x = 1, SB.col, 1 do
+            if SB.list[y][x] == nil then
+                return false
+            end
+        end
+    end
+    return true
+end

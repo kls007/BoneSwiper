@@ -29,6 +29,7 @@ function _M.require()
     require "lua/manager/AgentManager"
     -- require "lua/manager/AudioManager"
     
+    require "lua/item/Item"
     require "lua/item/Player"
     require "lua/res/res"
 
