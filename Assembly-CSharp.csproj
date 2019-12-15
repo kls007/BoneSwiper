@@ -200,6 +200,7 @@
      <None Include="Assets\Resources\lua\tools\Easing.lua.txt" />
      <None Include="Assets\Resources\lua\item\Ememy.lua.txt" />
      <None Include="Assets\Resources\lua\core\requireAll.lua.txt" />
+     <None Include="Assets\Resources\lua\core\Easing.lua.txt" />
      <None Include="Assets\Resources\lua\res\res.lua.txt" />
      <None Include="Assets\Resources\lua\data\mingzhu\shuihuzhuan.lua.txt" />
      <None Include="Assets\Resources\lua\data\food\fruit.lua.txt" />

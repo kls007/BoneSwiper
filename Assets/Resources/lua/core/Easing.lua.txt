@@ -1,0 +1,27 @@
+Easing = {}
+
+Elastic = {}
+function Elastic.easeInOut(t,b,c,d,a,p)
+    if (t==0) then
+        return b;
+    end
+    t = t / d * 0.5
+    if (t == 2) then
+        return b+c;  
+    end
+    if (not p) then
+        p = d*(.3*1.5);
+    end
+    if (not a or a < math.abs(c)) then
+         a=c; 
+         local s = p / 4;
+    else 
+        local s = p/(2*math.pi) * math.asin (c/a);
+    end
+    if (t < 1) then
+        t = t - 1
+        return -.5*(a*math.pow(2,10*(t)) * math.sin( (t*d-s)*(2*math.pi)/p )) + b;
+    end
+    t = t - 1;
+    return a*math.pow(2,-10*(t)) * math.sin( (t*d-s)*(2*math.pi)/p )*.5 + c + b;
+end

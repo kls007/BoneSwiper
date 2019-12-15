@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/MingZhuScene.unity
-    guid: 18dbc5f4af752a149b8d24f46bbba02d
+    path: Assets/Scenes/MainScene.unity
+    guid: 10ecc5ae89f6d0d43831895761a0b66d
   m_configObjects: {}
