@@ -11,7 +11,8 @@ function SB:InitList()
     for y = 1, SB.row, 1 do
         SB.list[y] = {}
         for x = 1, SB.col, 1 do
-            SB.list[y][x] = nil
+            Grid:New({x = x, y = y})
+            -- SB.list[y][x] = Grid:New({x = x, y = y})
         end
     end
 end

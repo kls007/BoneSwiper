@@ -30,7 +30,7 @@ function _M.require()
     -- require "lua/manager/AudioManager"
     
     require "lua/item/Item"
-    require "lua/item/Player"
+    require "lua/item/Grid"
     require "lua/res/res"
 
     require "lua/ShuaiTest"

@@ -9,7 +9,6 @@ function Item:New(params)
 
     instance.x = params.x
     instance.y = params.y
-    SB.list[instance.y][instance.x] = instance
 
     instance.id = params.id
     instance.data =
@@ -28,8 +27,11 @@ function Item:New(params)
     instance.isEating = false -- 有没有在吃东西
     instance.isAttacking = false -- 有没有在战斗
 
+    SB.list[instance.y][instance.x].item = instance
+
     instance:Create()
     instance:InitView()
+
     -- table.insert(instance.list, instance)
     -- instance.gameObject = params.gameObject
     -- instance.transform = instance.gameObject.transform
@@ -103,7 +105,10 @@ function Item:RandomCreate(pos)
     local randomRow = pos.y or math.random(1, SB.row)
     local randomCol = pos.x or math.random(1, SB.col)
 
-    if SB.list[randomRow][randomCol] == nil then
+    if SB.list[randomRow][randomCol].item == nil then
+        -- end
+        -- )
+        -- Actions:play(SeqAction)
         -- 刷新骷髅
         local id = math.random(2, 4)
         if SB.createEnemyStep <= 0 then
@@ -129,15 +134,12 @@ function Item:RandomCreate(pos)
             params.hp = 10
         end
 
-        local SeqAction = Actions.New("Sequence"):setTarget("Item")
-        SeqAction:addDelay(0.2)
-        SeqAction:addAction(
-            function()
-                GamePanel:NextStep()
-                return Item:New(params)
-            end
-        )
-        Actions:play(SeqAction)
+        -- local SeqAction = Actions.New("Sequence"):setTarget("Item")
+        -- SeqAction:addDelay(0.2)
+        -- SeqAction:addAction(
+        --     function()
+        GamePanel:NextStep()
+        return Item:New(params)
     else
         return self:RandomCreate()
     end
@@ -152,7 +154,7 @@ function Item:CreatePlayer()
     local randomRow = math.random(1, SB.row)
     local randomCol = math.random(1, SB.col)
 
-    if SB.list[randomRow][randomCol] == nil then
+    if SB.list[randomRow][randomCol].item == nil then
         local params = {
             x = randomCol,
             y = randomRow,
@@ -194,111 +196,123 @@ function Item:AddItem(target)
     end
 end
 
+-- 获取位置
+function Item:GetPosition(pos)
+    local x = pos.x or math.random(1, SB.col)
+    local y = pos.y or math.random(1, SB.row)
+    local posX = -SB.canvasWH.x / 2 + SB.cellWidth * (x - 1 + 0.5) + (SB.space * (x - 1)) + SB.padding
+    local posY = -SB.canvasWH.x / 2 + SB.cellWidth * (y - 1 + 0.5) + (SB.space * (y - 1)) + SB.padding
+    return {x = posX, y = posY}
+end
+
+-- 移动
+function Item:MoveAction(pos)
+    local SeqAction = Actions.New("Sequence"):setTarget("Item")
+    SeqAction:addAction(
+        function()
+            local x = pos.x or math.random(1, 4)
+            local y = pos.y or math.random(1, 4)
+
+            local position = Item:GetPosition(pos)
+
+            local action =
+                Actions.New(
+                "Move",
+                self.transform,
+                0.2,
+                self.transform.localPosition,
+                UnityEngine.Vector3(position.x, position.y, 0),
+                true
+            ):setTarget("Item")
+            action:setComplete(
+                function()
+                    if self.destroyGo then
+                        self:RefreshUI()
+                        self.destroyGo.gameObject:SetActive(false)
+                        self.destroyGo = nil
+                    end
+                end
+            )
+            Actions:play(action)
+        end
+    )
+    Actions:play(SeqAction)
+end
+
 -- 移动
 function Item:Move(direction)
     direction = direction or {x = 0, y = 0}
-    local x1 = self.x
-    local y1 = self.y
-    local x2 = self.x + direction.x
-    local y2 = self.y + direction.y
+    -- local x1 = self.x
+    -- local y1 = self.y
+    -- local x2 = self.x + direction.x
+    -- local y2 = self.y + direction.y
 
-    -- local one = SB.list[y1][x1]
-    -- local two = SB.list[y2][x2]
+    local grid1 = SB.list[self.y][self.x]
+    local grid2 = SB.list[self.y + direction.y][self.x + direction.x]
+    local item1 = grid1.item
+    local item2 = grid2.item
 
-    -- if self ~= nil then -- 自己不是空
-    -- if two == nil then -- 下一个是空直接移动
-        -- SB.list[y1][x1] = nil
+    if grid2.item == nil then -- 下一个是空直接移动
+        self.x = self.x + direction.x
+        self.y = self.y + direction.y
 
-        -- SB.list[y2][x2] = one
-        -- SB.list[y2][x2].x = x2
-        -- SB.list[y2][x2].y = y2
-        local pos = self.transform.localPosition
-        local x = pos.x + direction.x * SB.cellWidth
-        local y = pos.y + direction.y * SB.cellWidth
+        grid1.item = nil
+        grid2.item = self
+    else -- 下一个不是空
+        if item1.id == 1 and SB.currentState < 0 then -- 玩家
+            -- if two.id == 2 or two.id == 3 or two.id == 4 then
+            --             -- if itemTypeValue > SB.list[y2][x2][itemTypeName] then
+            --             --     SB.list[y2][x2][itemTypeName] = itemTypeValue
+            --             -- end
+            --             if self.isEating then
+            --                 return
+            --             end
+            --             self.isEating = true
+            --             local itemTypeName = two.type
+            --             local itemTypeValue = two[two.type]
+            --             self:AddItem(two)
+            --             SB.list[y1][x1] = nil
+            --             SB.list[y2][x2]:Destroy()
+            --             SB.list[y2][x2] = one
+            --             SB.list[y2][x2].x = x2
+            --             SB.list[y2][x2].y = y2
+            --         elseif two.id == 5 then
+            --             Item:Battle(one, two)
+            --         end
+            --     elseif one.id == 5 and SB.currentState < 0 then -- 骷髅
+            --         if two.id == 2 or two.id == 3 or two.id == 4 then
+            --             -- if itemTypeValue > SB.list[y2][x2][itemTypeName] then
+            --             --     SB.list[y2][x2][itemTypeName] = itemTypeValue
+            --             -- end
+            --             if self.isEating then
+            --                 return
+            --             end
+            --             self.isEating = true
+            --             local itemTypeName = two.type
+            --             local itemTypeValue = two[two.type]
+            --             self:AddItem(two)
+            --             SB.list[y1][x1] = nil
+            --             SB.list[y2][x2]:Destroy()
+            --             SB.list[y2][x2] = one
+            --             SB.list[y2][x2].x = x2
+            --             SB.list[y2][x2].y = y2
+            --         elseif two.id == 1 then
+            --             Item:Battle(one, two)
+            --         end
+        elseif item1.id == 2 or item1.id == 3 or item1.id == 4 then
+            if item1.id == item2.id and item1[item1.type] == item2[item2.type] then
+                self[item2.type] = self[item2.type] + item2[item2.type]
+                self.x = self.x + direction.x
+                self.y = self.y + direction.y
 
-        local SeqAction = Actions.New("Sequence"):setTarget("Item")
-        SeqAction:addAction(
-            function()
-                -- local transform = self.transform
-                
-                local action =
-                    Actions.New(
-                    "Move",
-                    self.transform,
-                    0.2,
-                    self.transform.localPosition,
-                    UnityEngine.Vector3(x, y, 0),
-                    true
-                ):setTarget("Item")
-                action:setComplete(
-                    function()
-                    end
-                )
-                Actions:play(action)
+                -- item2:Destroy()
+                self.destroyGo = item2.gameObject
+
+                grid1.item = nil
+                grid2.item = self
             end
-        )
-        Actions:play(SeqAction)
-    -- else -- 下一个不是空
-    --     if one.id == 1 and SB.currentState < 0 then -- 玩家
-    --         if two.id == 2 or two.id == 3 or two.id == 4 then
-    --             -- if itemTypeValue > SB.list[y2][x2][itemTypeName] then
-    --             --     SB.list[y2][x2][itemTypeName] = itemTypeValue
-    --             -- end
-    --             if self.isEating then
-    --                 return
-    --             end
-    --             self.isEating = true
-
-    --             local itemTypeName = two.type
-    --             local itemTypeValue = two[two.type]
-    --             self:AddItem(two)
-    --             SB.list[y1][x1] = nil
-
-    --             SB.list[y2][x2]:Destroy()
-    --             SB.list[y2][x2] = one
-    --             SB.list[y2][x2].x = x2
-    --             SB.list[y2][x2].y = y2
-    --         elseif two.id == 5 then
-    --             Item:Battle(one, two)
-    --         end
-    --     elseif one.id == 5 and SB.currentState < 0 then -- 骷髅
-    --         if two.id == 2 or two.id == 3 or two.id == 4 then
-    --             -- if itemTypeValue > SB.list[y2][x2][itemTypeName] then
-    --             --     SB.list[y2][x2][itemTypeName] = itemTypeValue
-    --             -- end
-    --             if self.isEating then
-    --                 return
-    --             end
-    --             self.isEating = true
-
-    --             local itemTypeName = two.type
-    --             local itemTypeValue = two[two.type]
-    --             self:AddItem(two)
-    --             SB.list[y1][x1] = nil
-
-    --             SB.list[y2][x2]:Destroy()
-    --             SB.list[y2][x2] = one
-    --             SB.list[y2][x2].x = x2
-    --             SB.list[y2][x2].y = y2
-    --         elseif two.id == 1 then
-    --             Item:Battle(one, two)
-    --         end
-    --     elseif one.id == 2 or one.id == 3 or one.id == 4 then
-    --         if one.id == two.id and one[one.type] == two[two.type] then
-    --             local itemTypeName = one.type
-    --             local itemTypeValue = one[one.type]
-    --             SB.list[y1][x1] = nil
-
-    --             SB.list[y2][x2]:Destroy()
-    --             SB.list[y2][x2] = one
-    --             SB.list[y2][x2].x = x2
-    --             SB.list[y2][x2].y = y2
-    --             SB.list[y2][x2][itemTypeName] = SB.list[y2][x2][itemTypeName] + itemTypeValue
-    --         end
-    --     end
-    -- end
-
-    -- end
+        end
+    end
 end
 
 -- 攻击 one先攻击two 先后手 后攻击的死了就无法攻击先手 先手优势 直接杀死就免伤
@@ -347,7 +361,7 @@ end
 -- 销毁
 function Item:Destroy()
     self.gameObject:SetActive(false)
-    SB.list[self.y][self.x] = nil
+    -- SB.list[self.y][self.x] = nil
     -- self = nil
     if self.id == 5 then
         SB.killNumber = SB.killNumber + 1
@@ -362,30 +376,11 @@ end
 
 -- 刷新位置
 function Item:RefreshPosition(type)
-    -- 设置位置xy
-    local posX = -SB.canvasWH.x / 2 + SB.cellWidth * (self.x - 1 + 0.5) + (SB.space * (self.x - 1)) + SB.padding
-    local posY = -SB.canvasWH.x / 2 + SB.cellWidth * (self.y - 1 + 0.5) + (SB.space * (self.y - 1)) + SB.padding
-
     if type == 0 then
-        self.gameObject.transform.localPosition = UnityEngine.Vector3(posX, posY, 0)
+        local position = Item:GetPosition({x = self.x, y = self.y})
+        self.gameObject.transform.localPosition = UnityEngine.Vector3(position.x, position.y, 0)
     else
-        local SeqAction = Actions.New("Sequence"):setTarget("Item")
-        SeqAction:addAction(
-            function()
-                local transform = self.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
-                local pos = transform.localPosition
-                local action =
-                    Actions.New("Move", transform, 0.15, pos, UnityEngine.Vector3(posX, posY, 0), true):setTarget(
-                    "Item"
-                )
-                action:setComplete(
-                    function()
-                    end
-                )
-                Actions:play(action)
-            end
-        )
-        Actions:play(SeqAction)
+        self:MoveAction({x = self.x, y = self.y})
     end
 end
 
@@ -393,7 +388,8 @@ end
 function Item:IsFull()
     for y = 1, SB.row, 1 do
         for x = 1, SB.col, 1 do
-            if SB.list[y][x] == nil then
+            local grid = SB.list[y][x]
+            if grid.item == nil then
                 return false
             end
         end

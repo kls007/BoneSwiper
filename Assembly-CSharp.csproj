@@ -175,7 +175,6 @@
      <None Include="Assets\Resources\lua\data\mingzhu\sanguoyanyi.lua.txt" />
      <None Include="Assets\XLua\Examples\02_U3DScripting\LuaTestScript.lua.txt" />
      <None Include="Assets\Resources\lua\manager\GameManager.lua.txt" />
-     <None Include="Assets\Resources\lua\item\Player.lua.txt" />
      <None Include="Assets\Resources\lua\core\XLuaAPI.lua.txt" />
      <None Include="Assets\Resources\lua\gui\ResultPanel.lua.txt" />
      <None Include="Assets\Resources\lua\core\Event.lua.txt" />
@@ -193,12 +192,12 @@
      <None Include="Assets\Resources\lua\data\mingzhu\hongloumeng.lua.txt" />
      <None Include="Assets\XLua\Gen\link.xml" />
      <None Include="Assets\Resources\lua\data\animal.lua.txt" />
+     <None Include="Assets\Resources\lua\item\Grid.lua.txt" />
      <None Include="Assets\Resources\lua\define.lua.txt" />
      <None Include="Assets\Resources\lua\gui\AlertPanel.lua.txt" />
      <None Include="Assets\XLua\Examples\03_UIEvent\ButtonInteraction.lua.txt" />
      <None Include="Assets\Resources\lua\Main.lua.txt" />
      <None Include="Assets\Resources\lua\tools\Easing.lua.txt" />
-     <None Include="Assets\Resources\lua\item\Ememy.lua.txt" />
      <None Include="Assets\Resources\lua\core\requireAll.lua.txt" />
      <None Include="Assets\Resources\lua\core\Easing.lua.txt" />
      <None Include="Assets\Resources\lua\res\res.lua.txt" />

@@ -100,7 +100,9 @@ function _M:Start()
 
     SB:InitData()
 
-    Item:CreatePlayer()
+    -- Item:CreatePlayer()
+
+    
 
     -- self.isMove = false
     -- self.score = 0
@@ -187,10 +189,12 @@ function _M:Move(direction)
     -- 刷新所有item状态
     for y = 1, SB.row, 1 do
         for x = 1, SB.col, 1 do
-            local item = SB.list[y][x]
+            local grid = SB.list[y][x]
+            local item = grid.item
             if type(item) == "table" then
-                item:RefreshPosition()
-                item:RefreshUI()
+                -- item:RefreshPosition()
+                -- item:RefreshUI()
+                item:MoveAction({x = item.x, y = item.y})
 
                 item.isEating = false
                 item.isAttacking = false
@@ -205,7 +209,7 @@ function _M:Left()
         for x = 2, SB.col, 1 do
             for j = x, 2, -1 do
                 -- local j = x
-                local item = SB.list[y][j]
+                local item = SB.list[y][j].item
                 if type(item) == "table" and type(item.Move) == "function" then
                     self.isMove = item:Move({x = -1, y = 0})
                 end
@@ -220,7 +224,7 @@ function _M:Right()
     for y = 1, SB.row, 1 do
         for x = SB.col - 1, 1, -1 do
             for j = x, SB.col - 1, 1 do
-                local item = SB.list[y][j]
+                local item = SB.list[y][j].item
                 if type(item) == "table" and type(item.Move) == "function" then
                     self.isMove = item:Move({x = 1, y = 0})
                 end
@@ -235,7 +239,7 @@ function _M:Up()
     for x = 1, SB.col, 1 do
         for y = SB.row - 1, 1, -1 do
             for j = y, SB.row - 1, 1 do
-                local item = SB.list[j][x]
+                local item = SB.list[j][x].item
                 if type(item) == "table" and type(item.Move) == "function" then
                     self.isMove = item:Move({x = 0, y = 1})
                 end
@@ -250,7 +254,7 @@ function _M:Down()
     for x = 1, SB.col, 1 do
         for y = 2, SB.row, 1 do
             for j = y, 2, -1 do
-                local item = SB.list[j][x]
+                local item = SB.list[j][x].item
                 if type(item) == "table" and type(item.Move) == "function" then
                     self.isMove = item:Move({x = 0, y = -1})
                 end
@@ -280,6 +284,10 @@ end
 
 -- 10步杀一人 下一步
 function _M:NextStep()
+    -- :TODO
+do return end
+
+
     SB.currentState = SB.currentState + SB.currentState / math.abs(SB.currentState)
     self.Slider_taskTime.value = math.abs(SB.currentState / SB.totalNumbers)
     self.Text_currentState.text = math.abs(SB.currentState)

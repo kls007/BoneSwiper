@@ -29,11 +29,6 @@ function _M.TestQ()
 
     -- print_t(_VERSION, "_VERSION")
 
-    -- print_t(UnityEngine.Screen.width, "宽度")
-    -- print_t(UnityEngine.Screen.height, "高度")
-
-    -- GameManager:StartGame()
-
     -- local params = {
     --     x = 1,
     --     y = 1,
@@ -100,58 +95,73 @@ function _M.TestQ()
     --     )
     --     Actions:play(SeqAction)
 
+    -- print_t(Item.player.gameObject, "Player.player")
+    -- Item.player:Move({x = -1, y = 0})
 
-    print_t(Item.player.gameObject, "Player.player")
-    Item.player:Move({x = -1, y = 0})
-    
+    -- function fun1(transform, params)
+    --     params = params or {}
+    --     local SeqAction = Actions.New("Sequence"):setTarget("Test")
+    --     -- local transform = Player.player.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
+    --     SeqAction:addAction(
+    --         function()
+    --             local x = params.x or math.random(1, 4)
+    --             local y = params.y or math.random(1, 4)
+    --             -- print("x:".. x, "y:" .. y)
+    --             -- local posX = -SB.canvasWH.x / 2 + SB.cellWidth * (x - 1 + 0.5) + (SB.space * (x - 1))
+    --             -- local posY = -SB.canvasWH.x / 2 + SB.cellWidth * (y - 1 + 0.5) + (SB.space * (y - 1))
 
+    --             local posX = -SB.canvasWH.x / 2 + SB.cellWidth * (x - 1 + 0.5) + (SB.space * (x - 1)) + SB.padding
+    --             local posY = -SB.canvasWH.x / 2 + SB.cellWidth * (y - 1 + 0.5) + (SB.space * (y - 1)) + SB.padding
+
+    --             local action =
+    --                 Actions.New(
+    --                 "Move",
+    --                 transform,
+    --                 0.2,
+    --                 transform.localPosition,
+    --                 UnityEngine.Vector3(posX, posY, 0),
+    --                 true
+    --             ):setTarget("Test")
+    --             action:setComplete(
+    --                 function()
+    --                 end
+    --             )
+    --             Actions:play(action)
+    --         end
+    --     )
+
+    --     Actions:play(SeqAction)
+    -- end
+
+    functions.SetActiveAllChildren(GamePanel.parent, false)
+    SB:InitList()
+    for i = 2, 4, 1 do
+        local item = Item:RandomCreate({x = i, y = 1})
+        local pos = {
+            x = 1, -- item.x - 1,
+            y = item.y
+        }
+        item:MoveAction(pos)
+        -- fun1(item.transform, pos)
+    end
+    UnityEngine.Time.timeScale = 0.1
 end
 
 function _M.TestE()
     print_t("EEE", "ShuaiTest")
     -- TipManager.Show("TestE")
 
-    function fun1(params)
-        params = params or {}
-        local SeqAction = Actions.New("Sequence"):setTarget("Test")
-        local transform = Player.player.transform -- functions.GetGo(GamePanel.parent, GamePanel.prefab)
-        SeqAction:addAction(
-            function()
-                local x = params.x or math.random(1, 4)
-                local y = params.y or math.random(1, 4)
-                -- print("x:".. x, "y:" .. y)
-                local posX = -SB.canvasWH.x / 2 + SB.cellWidth * (x - 1 + 0.5) + (SB.space * (x - 1))
-                local posY = -SB.canvasWH.x / 2 + SB.cellWidth * (y - 1 + 0.5) + (SB.space * (y - 1))
-
-                local action =
-                    Actions.New(
-                    "Move",
-                    transform,
-                    0.2,
-                    transform.localPosition,
-                    UnityEngine.Vector3(posX, posY, 0),
-                    true
-                ):setTarget("Test")
-                action:setComplete(
-                    function()
-                    end
-                )
-                Actions:play(action)
-            end
-        )
-
-        Actions:play(SeqAction)
-    end
-
     -- fun1({x = 2, y = 1})
-    fun1()
+    print_t(SB.list, "SB.list")
+    Item:CreatePlayer()
 end
 
 function _M.TestR()
     -- print_t("RRR", "ShuaiTest")
     -- TipManager.Show("TestR")
 
-    fun1(4, 1)
+    print_t(Item:IsFull(), "Item:IsFull()")
+    
 end
 
 function _M.TestW()
