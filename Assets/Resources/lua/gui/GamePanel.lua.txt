@@ -84,6 +84,7 @@ end
 function _M:Clear()
     functions.SetActiveAllChildren(self.parent, false)
     SB:InitList()
+    SB:InitGameObjecList()
 end
 
 function _M:InitData()
@@ -101,8 +102,6 @@ function _M:Start()
     SB:InitData()
 
     -- Item:CreatePlayer()
-
-    
 
     -- self.isMove = false
     -- self.score = 0
@@ -173,6 +172,16 @@ function _M:Move(direction)
     end
 
     if direction.y > 0 then
+        Item:RandomCreate({y = 1})
+    elseif direction.y < 0 then
+        Item:RandomCreate({y = SB.row})
+    elseif direction.x < 0 then
+        Item:RandomCreate({x = SB.col})
+    elseif direction.x > 0 then
+        Item:RandomCreate({x = 1})
+    end
+
+    if direction.y > 0 then
         GamePanel:Up()
     elseif direction.y < 0 then
         GamePanel:Down()
@@ -186,21 +195,97 @@ function _M:Move(direction)
         GamePanel:ChangeDayNight()
     end
 
-    -- 刷新所有item状态
-    for y = 1, SB.row, 1 do
-        for x = 1, SB.col, 1 do
-            local grid = SB.list[y][x]
-            local item = grid.item
-            if type(item) == "table" then
-                -- item:RefreshPosition()
-                -- item:RefreshUI()
-                item:MoveAction({x = item.x, y = item.y})
+    for index, value in ipairs(SB.gameObjectList) do
+        local gameObject = value.gameObject
+        local SeqAction = Actions.New("Sequence"):setTarget("Shuai")
+        SeqAction:addAction(
+            function()
+                local position = Item:GetPosition({x = value.newX, y = value.newY})
 
-                item.isEating = false
-                item.isAttacking = false
+                local action =
+                    Actions.New(
+                    "Move",
+                    gameObject.transform,
+                    0.2,
+                    gameObject.transform.localPosition,
+                    UnityEngine.Vector3(position.x, position.y, 0),
+                    true
+                ):setTarget("Shuai")
+                action:setComplete(
+                    function()
+                        gameObject:SetActive(false)
+                    end
+                )
+                Actions:play(action)
+            end
+        )
+        Actions:play(SeqAction)
+    end
+
+    local SeqAction = Actions.New("Sequence"):setTarget("Shuai")
+    SeqAction:addDelay(0.25)
+    SeqAction:addAction(
+        function()
+            SB:InitGameObjecList()
+            -- 刷新所有item状态
+            for y = 1, SB.row, 1 do
+                for x = 1, SB.col, 1 do
+                    local grid = SB.list[y][x]
+                    local item = grid.item
+                    if type(item) == "table" then
+                        table.insert(
+                            SB.gameObjectList,
+                            {
+                                gameObject = item.gameObject,
+                                oldX = item.x,
+                                oldY = item.y,
+                                newX = item.x,
+                                newY = item.y
+                            }
+                        )
+
+                        item.gameObject:SetActive(true)
+                        item:RefreshPosition(0)
+                        item:RefreshUI()
+                        -- item:MoveAction({x = item.x, y = item.y})
+
+                        item.isEating = false
+                        item.isAttacking = false
+                    end
+                end
             end
         end
-    end
+    )
+    Actions:play(SeqAction)
+
+    -- for x = 1, SB.col, 1 do
+    --     local grid = SB.list[y][x]
+    --     local item = grid.item
+    --     if type(item) == "table" then
+    --         -- item:RefreshPosition()
+    --         -- item:RefreshUI()
+    --         item:MoveAction({x = item.x, y = item.y})
+    --         item.isEating = false
+    --         item.isAttacking = false
+    --     end
+    -- end
+
+    -- local SeqAction = Actions.New("Sequence"):setTarget("Shuai")
+    -- SeqAction:addDelay(0.3)
+    -- SeqAction:addAction(
+    --     function()
+    --         if direction.y > 0 then
+    --             Item:RandomCreate({y = 1})
+    --         elseif direction.y < 0 then
+    --             Item:RandomCreate({y = SB.row})
+    --         elseif direction.x < 0 then
+    --             Item:RandomCreate({x = SB.col})
+    --         elseif direction.x > 0 then
+    --             Item:RandomCreate({x = 1})
+    --         end
+    --     end
+    -- )
+    -- Actions:play(SeqAction)
 end
 
 -- 左移
@@ -216,7 +301,6 @@ function _M:Left()
             end
         end
     end
-    Item:RandomCreate({x = SB.col, time = 0.4})
 end
 
 -- 右移
@@ -231,7 +315,6 @@ function _M:Right()
             end
         end
     end
-    Item:RandomCreate({x = 1, time = 0.4})
 end
 
 -- 上移
@@ -246,7 +329,6 @@ function _M:Up()
             end
         end
     end
-    Item:RandomCreate({y = 1, time = 0.4})
 end
 
 -- 下移
@@ -261,7 +343,6 @@ function _M:Down()
             end
         end
     end
-    Item:RandomCreate({y = SB.row, time = 0.4})
 end
 
 function _M:RefreshState()
@@ -285,8 +366,9 @@ end
 -- 10步杀一人 下一步
 function _M:NextStep()
     -- :TODO
-do return end
-
+    do
+        return
+    end
 
     SB.currentState = SB.currentState + SB.currentState / math.abs(SB.currentState)
     self.Slider_taskTime.value = math.abs(SB.currentState / SB.totalNumbers)

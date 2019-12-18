@@ -133,18 +133,40 @@ function _M.TestQ()
     --     Actions:play(SeqAction)
     -- end
 
+    local arr = {
+        {x = 2, y = 1, id = 2, attack = 2},
+        {x = 3, y = 1, id = 2, attack = 2},
+        {x = 4, y = 1, id = 2, attack = 4}
+    }
+
+    local list1 = {}
+    local list2 = {}
     functions.SetActiveAllChildren(GamePanel.parent, false)
     SB:InitList()
-    for i = 2, 4, 1 do
-        local item = Item:RandomCreate({x = i, y = 1})
-        local pos = {
-            x = 1, -- item.x - 1,
-            y = item.y
-        }
-        item:MoveAction(pos)
-        -- fun1(item.transform, pos)
+    for i = 1, #arr, 1 do
+        local param = arr[i]
+        local item = Item:RandomCreate(param)
+        table.insert(list1, item)
+        table.insert(list2, item)
+        -- local pos = {
+        --     x = 1,
+        --     y = 1
+        -- }
+        -- item:MoveAction(pos)
     end
     UnityEngine.Time.timeScale = 0.1
+
+    print_t(list1[1].gameObject == list2[1].gameObject, "list")
+
+    local res =
+        array.filter(
+        SB.gameObjectList,
+        function(value)
+            return value.gameObject == list1[1].gameObject
+        end
+    )[1]
+
+    print_t(res, "res")
 end
 
 function _M.TestE()
@@ -161,7 +183,6 @@ function _M.TestR()
     -- TipManager.Show("TestR")
 
     print_t(Item:IsFull(), "Item:IsFull()")
-    
 end
 
 function _M.TestW()

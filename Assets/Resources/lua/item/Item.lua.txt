@@ -42,6 +42,18 @@ end
 -- 生成物体
 function Item:Create()
     self.gameObject = functions.GetGo(GamePanel.parent, GamePanel.prefab)
+
+    table.insert(
+        SB.gameObjectList,
+        {
+            gameObject = self.gameObject,
+            oldX = self.x,
+            oldY = self.y,
+            newX = self.x,
+            newY = self.y
+        }
+    )
+
     self.transform = self.gameObject.transform
     self.transform.localScale = UnityEngine.Vector3.one
     self.transform.localPosition = UnityEngine.Vector3.zero
@@ -93,7 +105,7 @@ function Item:RefreshUI()
     self:DayNight()
 end
 
-function Item:RandomCreate(pos)
+function Item:RandomCreate(params)
     if Item:IsFull() then
         print("满了~~~")
         -- SB.currentState = -SB.currentState / math.abs(SB.currentState)
@@ -101,14 +113,11 @@ function Item:RandomCreate(pos)
         return
     end
 
-    pos = pos or {}
-    local randomRow = pos.y or math.random(1, SB.row)
-    local randomCol = pos.x or math.random(1, SB.col)
+    params = params or {}
+    local randomRow = params.y or math.random(1, SB.row)
+    local randomCol = params.x or math.random(1, SB.col)
 
     if SB.list[randomRow][randomCol].item == nil then
-        -- end
-        -- )
-        -- Actions:play(SeqAction)
         -- 刷新骷髅
         local id = math.random(2, 4)
         if SB.createEnemyStep <= 0 then
@@ -120,28 +129,31 @@ function Item:RandomCreate(pos)
         -- end
         end
 
-        local params = {
-            x = randomCol,
-            y = randomRow,
-            id = id,
-            attack = 2, -- ({2, 4})[math.random(1, 2)],
-            defense = 2, -- ({2, 4})[math.random(1, 2)],
-            hp = 2 -- ({2, 4})[math.random(1, 2)]
-        }
+        params.x = params.x or randomCol
+        params.y = params.y or randomRow
+        params.id = params.id or id
+        params.attack = params.attack or 2
+        params.defense = params.defense or 2
+        params.hp = params.hp or 2
+
+        -- local params = {
+        --     x = randomCol,
+        --     y = randomRow,
+        --     id = id,
+        --     attack = 2, -- ({2, 4})[math.random(1, 2)],
+        --     defense = 2, -- ({2, 4})[math.random(1, 2)],
+        --     hp = 2 -- ({2, 4})[math.random(1, 2)]
+        -- }
         if params.id == 5 then -- 骷髅
             params.attack = 1
             params.defense = 0
             params.hp = 10
         end
 
-        -- local SeqAction = Actions.New("Sequence"):setTarget("Item")
-        -- SeqAction:addDelay(0.2)
-        -- SeqAction:addAction(
-        --     function()
         GamePanel:NextStep()
         return Item:New(params)
     else
-        return self:RandomCreate()
+        return self:RandomCreate(params)
     end
 end
 
@@ -219,7 +231,7 @@ function Item:MoveAction(pos)
                 Actions.New(
                 "Move",
                 self.transform,
-                0.2,
+                0.24,
                 self.transform.localPosition,
                 UnityEngine.Vector3(position.x, position.y, 0),
                 true
@@ -255,6 +267,17 @@ function Item:Move(direction)
     if grid2.item == nil then -- 下一个是空直接移动
         self.x = self.x + direction.x
         self.y = self.y + direction.y
+
+        local go =
+            array.filter(
+            SB.gameObjectList,
+            function(value)
+                return value.gameObject == self.gameObject
+            end
+        )[1]
+        -- print_t(go, "go")
+        go.newX = self.x
+        go.newY = self.y
 
         grid1.item = nil
         grid2.item = self
@@ -306,10 +329,25 @@ function Item:Move(direction)
                 self.y = self.y + direction.y
 
                 -- item2:Destroy()
-                self.destroyGo = item2.gameObject
+                -- self.destroyGo = item2.gameObject
+
+                local go =
+                    array.filter(
+                    SB.gameObjectList,
+                    function(value)
+                        return value.gameObject == self.gameObject
+                    end
+                )[1]
+                -- print_t(go, "go")
+                go.newX = self.x
+                go.newY = self.y
+
 
                 grid1.item = nil
                 grid2.item = self
+
+
+                -- self:RefreshPosition(0)
             end
         end
     end
